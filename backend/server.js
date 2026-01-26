@@ -7,6 +7,8 @@ import userRoute from "./routes/userRoute.js";
 import orderRoute from "./routes/orderRoute.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpecs from "./swagger.js";
 
 import cookieParser from "cookie-parser";
 dotenv.config();
@@ -55,9 +57,25 @@ app.get("/", (req, res) => {
   res.send("API is running 🚀");
 });
 
+// Swagger UI setup
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpecs, {
+    explorer: true,
+    customCss: `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info { margin-bottom: 20px }
+  `,
+    customSiteTitle: "BookShop API Documentation",
+    customfavIcon: "/favicon.ico",
+  }),
+);
+
 app.use(notFound);
 app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`server running on ${port}`);
+  console.log(`Swagger docs available at http://localhost:${port}/api-docs`);
 });
