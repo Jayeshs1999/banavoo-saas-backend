@@ -1,118 +1,87 @@
-# BookShop API Documentation
+# Swagger API Testing Guide
 
-This project includes comprehensive Swagger documentation for all API endpoints.
+## Authentication Required
 
-## Swagger UI Access
+All PG routes (`/api/pgs/*`) require admin authentication. To test these APIs in Swagger UI, you must first:
 
-Once your server is running, you can access the interactive API documentation at:
+### 1. Get an Admin Token
 
-- **Development**: http://localhost:5000/api-docs
-- **Production**: https://your-render-deployment-url.onrender.com/api-docs
+**Option A: Register a new admin**
 
-## API Endpoints
+- Go to `/api/admins/register` in Swagger UI
+- Fill in the required fields (pgName, ownerName, email, mobile, password, address)
+- This will return a JWT token
 
-### Products
+**Option B: Login with existing admin**
 
-- `GET /api/products` - Get all products with pagination and search
-- `POST /api/products` - Create a new product (Admin only)
-- `GET /api/products/top` - Get top-rated products
-- `GET /api/products/:id` - Get product by ID
-- `PUT /api/products/:id` - Update product (Admin only)
-- `DELETE /api/products/:id` - Delete product (Admin only)
-- `POST /api/products/:id/reviews` - Create product review
+- Go to `/api/admins/auth` in Swagger UI
+- Provide your admin email and password
+- This will return a JWT token
 
-### Users
+### 2. Set Authentication in Swagger UI
 
-- `POST /api/users` - Register a new user
-- `GET /api/users` - Get all users (Admin only)
-- `POST /api/users/login` - Authenticate user
-- `POST /api/users/logout` - Logout user
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
-- `GET /api/users/:id` - Get user by ID (Admin only)
-- `PUT /api/users/:id` - Update user (Admin only)
-- `DELETE /api/users/:id` - Delete user (Admin only)
+1. Click the "Authorize" button (usually in the top right corner of Swagger UI)
+2. Enter your JWT token in the format: `Bearer your_token_here`
+3. Click "Authorize" to apply
 
-### Orders
+### 3. Test PG APIs
 
-- `POST /api/orders` - Create new order
-- `GET /api/orders` - Get all orders (Admin only)
-- `GET /api/orders/mine` - Get logged-in user's orders
-- `GET /api/orders/:id` - Get order by ID
-- `PUT /api/orders/:id/pay` - Update order to paid
-- `PUT /api/orders/:id/deliver` - Update order to delivered (Admin only)
+Now you can test any PG API endpoint:
 
-### Upload
+- `/api/pgs` (GET, POST)
+- `/api/pgs/{id}` (GET, PUT, DELETE)
+- `/api/pgs/admin` (GET)
+- `/api/pgs/search` (GET)
 
-- `POST /api/upload` - Upload image files
+## Example Admin Registration
 
-## Authentication
-
-Most endpoints require authentication using JWT tokens. To authenticate:
-
-1. Login using `POST /api/users/login` with your credentials
-2. Copy the JWT token from the response
-3. Click the "Authorize" button in Swagger UI
-4. Enter `Bearer <your-token>` in the authorization field
-
-## Admin Endpoints
-
-Admin-only endpoints are marked with 🔒 Admin in the documentation. To access these:
-
-1. Login as an admin user
-2. Use the JWT token for authentication
-
-## Testing the API
-
-You can test all endpoints directly from the Swagger UI:
-
-1. Navigate to http://localhost:5000/api-docs
-2. Click on any endpoint to expand its details
-3. Use the "Try it out" button to test the endpoint
-4. Fill in required parameters and click "Execute"
-
-## Production Deployment
-
-When deploying to Render.com:
-
-1. Update the production server URL in `backend/swagger.js`:
-
-   ```javascript
-   url: "https://your-app-name.onrender.com/api";
-   ```
-
-2. The Swagger documentation will be available at:
-   ```
-   https://your-app-name.onrender.com/api-docs
-   ```
-
-## Dependencies
-
-The following packages are used for Swagger documentation:
-
-- `swagger-jsdoc` - Generates OpenAPI specification from JSDoc comments
-- `swagger-ui-express` - Serves the interactive Swagger UI
-
-## File Structure
-
-```
-backend/
-├── swagger.js              # Swagger configuration and schemas
-├── server.js              # Main server with Swagger UI setup
-└── routes/
-    ├── productRoute.js    # Product endpoints with JSDoc
-    ├── userRoute.js       # User endpoints with JSDoc
-    ├── orderRoute.js      # Order endpoints with JSDoc
-    └── uploadRoutes.js    # Upload endpoints with JSDoc
+```json
+{
+  "pgName": "Sample PG",
+  "ownerName": "John Doe",
+  "email": "admin@example.com",
+  "mobile": "1234567890",
+  "password": "password123",
+  "address": {
+    "area": "Downtown",
+    "landmark": "Near Station",
+    "city": "Mumbai",
+    "pincode": "400001",
+    "state": "Maharashtra"
+  }
+}
 ```
 
-## Features
+## Example Login
 
-- ✅ Interactive API documentation
-- ✅ Request/response examples
-- ✅ Authentication support
-- ✅ Parameter validation
-- ✅ Pagination support
-- ✅ Search functionality
-- ✅ Admin role protection
-- ✅ File upload support
+```json
+{
+  "email": "admin@example.com",
+  "password": "password123"
+}
+```
+
+## Token Format
+
+After successful registration or login, you'll receive a response like:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Use this token in the Authorization header as: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+## Troubleshooting
+
+- **401 Error**: Make sure you've set the Authorization header with a valid JWT token
+- **404 Error**: Check if the admin exists or if the PG ID is correct
+- **400 Error**: Verify that all required fields are provided and in the correct format
+
+## Development Notes
+
+- Tokens are valid for 30 days
+- Tokens can be passed via cookies or Authorization header
+- Admin routes require admin privileges
+- PG routes require admin authentication
