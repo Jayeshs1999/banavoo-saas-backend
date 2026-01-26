@@ -1,45 +1,40 @@
 {
-  "name": "bookshop",
-  "version": "2.0.0",
-  "description": "book shop build with mern stack",
+  "name": "dormitory-api",
+  "version": "1.0.0",
+  "description": "Backend API for Dormitory/PG Management System",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
-    "client": "npm start --prefix mybookstore",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "nodemon backend/server.js",
     "data:import": "node backend/seeder.js",
     "data:destroy": "node backend/seeder.js -d",
-    "build": "npm install && npm install --prefix mybookstore && npm run build --prefix mybookstore"
+    "build": "npm install"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jayeshs1999/Books.com.git"
+    "url": "git+https://github.com/Jayeshs1999/dormitory-backend.git"
   },
   "author": "jayesh sevatkar",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Jayeshs1999/Books.com/issues"
+    "url": "https://github.com/Jayeshs1999/dormitory-backend/issues"
   },
-  "homepage": "https://github.com/Jayeshs1999/Books.com#readme",
+  "homepage": "https://github.com/Jayeshs1999/dormitory-backend#readme",
   "dependencies": {
-    "@emailjs/browser": "^3.11.0",
     "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.6.1",
-    "emailjs-com": "^3.2.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.3",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "concurrently": "^8.2.1",
     "nodemon": "^3.0.1"
   }
 }
