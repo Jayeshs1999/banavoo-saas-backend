@@ -23,6 +23,22 @@ app.use(express.urlencoded({ extended: true }));
 // cookie parser middleware
 app.use(cookieParser());
 
+// CORS middleware
+import cors from "cors";
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://192.168.0.147:3000",
+      "http://localhost:3000",
+      "https://dormitory-backend-5rda.onrender.com",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
 // API Routes
 app.use("/api/admins", adminRoutes);
 
