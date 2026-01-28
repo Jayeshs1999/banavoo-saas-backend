@@ -11,7 +11,7 @@ const authAdmin = asyncHandler(async (req, res) => {
   const admin = await Admin.findOne({ email }).select("+password");
 
   if (admin && (await admin.matchPassword(password))) {
-    generateToken(res, admin._id, "admin");
+    const token = generateToken(res, admin._id, "admin");
 
     res.json({
       _id: admin._id,
@@ -20,6 +20,7 @@ const authAdmin = asyncHandler(async (req, res) => {
       email: admin.email,
       mobile: admin.mobile,
       role: admin.role,
+      token: token,
     });
   } else {
     res.status(401);
@@ -52,7 +53,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
   });
 
   if (admin) {
-    generateToken(res, admin._id, "admin");
+    const token = generateToken(res, admin._id, "admin");
 
     res.status(201).json({
       _id: admin._id,
@@ -61,6 +62,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
       email: admin.email,
       mobile: admin.mobile,
       role: admin.role,
+      token: token,
     });
   } else {
     res.status(400);
