@@ -62,11 +62,12 @@ const createPG = asyncHandler(async (req, res) => {
     !location.subcity ||
     !location.city ||
     !location.state ||
-    !location.country
+    !location.country ||
+    !location.pin
   ) {
     return res.status(400).json({
       success: false,
-      message: "Location must include subcity, city, state, and country",
+      message: "Location must include subcity, city, state, pin and country",
     });
   }
 

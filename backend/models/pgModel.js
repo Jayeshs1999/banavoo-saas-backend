@@ -70,6 +70,11 @@ const locationSchema = new mongoose.Schema({
     trim: true,
     default: "India",
   },
+  pin: {
+    type: String,
+    required: [true, "Pin code is required"],
+    trim: true,
+  },
 });
 
 const pgSchema = new mongoose.Schema(
