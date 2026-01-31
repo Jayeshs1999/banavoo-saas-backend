@@ -85,4 +85,14 @@ const admin = (req, res, next) => {
   }
 };
 
-export { protectUser, protectAdmin, admin };
+// Middleware to check if user is super admin
+const superAdmin = (req, res, next) => {
+  if (req.admin && req.admin.role === "super_admin") {
+    next();
+  } else {
+    res.status(403);
+    throw new Error("Not authorized as super admin");
+  }
+};
+
+export { protectUser, protectAdmin, admin, superAdmin };
