@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import pgRoutes from "./routes/pgRoutes.js";
+import superAdminRoutes from "./routes/superAdminRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpecs from "./swagger.js";
@@ -43,6 +44,7 @@ app.use(
 // API Routes
 app.use("/api/admins", adminRoutes);
 app.use("/api/pgs", pgRoutes);
+app.use("/api/super-admin", superAdminRoutes);
 
 // Swagger UI setup
 app.use(
