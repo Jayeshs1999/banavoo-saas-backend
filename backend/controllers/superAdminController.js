@@ -115,11 +115,11 @@ const getPGsList = asyncHandler(async (req, res) => {
     },
     {
       $addFields: {
-        totalRooms: { $size: "$rooms" },
+        totalRooms: { $size: "$structure" },
         totalBeds: {
           $sum: {
             $map: {
-              input: "$rooms",
+              input: "$structure",
               as: "room",
               in: { $size: "$$room.beds" },
             },
@@ -128,7 +128,7 @@ const getPGsList = asyncHandler(async (req, res) => {
         allocatedBeds: {
           $sum: {
             $map: {
-              input: "$rooms",
+              input: "$structure",
               as: "room",
               in: {
                 $size: {
@@ -201,12 +201,12 @@ const getLocationStats = asyncHandler(async (req, res) => {
           city: "$location.city",
         },
         pgCount: { $sum: 1 },
-        totalRooms: { $sum: { $size: "$rooms" } },
+        totalRooms: { $sum: { $size: "$structure" } },
         totalBeds: {
           $sum: {
             $sum: {
               $map: {
-                input: "$rooms",
+                input: "$structure",
                 as: "room",
                 in: { $size: "$$room.beds" },
               },
@@ -217,7 +217,7 @@ const getLocationStats = asyncHandler(async (req, res) => {
           $sum: {
             $sum: {
               $map: {
-                input: "$rooms",
+                input: "$structure",
                 as: "room",
                 in: {
                   $size: {
