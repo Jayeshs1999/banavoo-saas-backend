@@ -32,7 +32,6 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://192.168.0.147:3000",
-      "http://localhost:3000",
       "https://dormitory-alpha.vercel.app",
       "https://www.sthals.in",
     ],
