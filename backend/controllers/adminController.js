@@ -1,6 +1,16 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/adminModel.js";
 import generateToken from "../utils/generateToken.js";
+import twilio from "twilio";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Initialize Twilio client only if credentials are available
+const client =
+  process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+    : null;
 
 // @desc    Auth admin & get token
 // @route   POST /api/admins/auth
@@ -152,10 +162,36 @@ const sendMobileOtp = asyncHandler(async (req, res) => {
     const otp = admin.generateVerificationToken();
     await admin.save();
 
-    // In real implementation, send OTP via SMS service
-    console.log(`Mobile OTP for ${mobile}: ${otp}`);
+    if (client && process.env.TWILIO_PHONE_NUMBER) {
+      try {
+        // Send OTP via Twilio
+        const message = await client.messages.create({
+          body: `Your OTP for STHALS.IN verification is: ${otp}. This OTP is valid for 10 minutes.`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: mobile,
+        });
 
-    res.json({ message: "OTP sent successfully" });
+        console.log(`OTP sent to ${mobile}: ${otp}`);
+        console.log(`Message SID: ${message.sid}`);
+
+        res.json({ message: "OTP sent successfully" });
+      } catch (error) {
+        console.error("Error sending OTP via Twilio:", error);
+        res.status(500);
+        throw new Error("Failed to send OTP. Please try again later.");
+      }
+    } else {
+      // Fallback to console log when Twilio is not configured
+      console.log(`Mobile OTP for ${mobile}: ${otp} (Twilio not configured)`);
+      console.log(
+        "Please configure Twilio credentials in .env file to send actual SMS",
+      );
+
+      res.json({
+        message:
+          "OTP generated successfully (Twilio not configured - check console for OTP)",
+      });
+    }
   } else {
     res.status(404);
     throw new Error("Admin not found with this mobile number");
