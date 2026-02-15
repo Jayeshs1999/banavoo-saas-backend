@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/adminModel.js";
 import generateToken from "../utils/generateToken.js";
+import { sendWelcomeEmail } from "../utils/emailService.js";
 import twilio from "twilio";
 import dotenv from "dotenv";
 
@@ -64,6 +65,15 @@ const registerAdmin = asyncHandler(async (req, res) => {
 
   if (admin) {
     const token = generateToken(res, admin._id, "admin");
+
+    // Send welcome email to the newly registered admin
+    try {
+      await sendWelcomeEmail(admin.email, admin.ownerName);
+      console.log("Welcome email sent successfully to:", admin.email);
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Don't throw error to prevent registration failure, just log it
+    }
 
     res.status(201).json({
       _id: admin._id,
