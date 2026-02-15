@@ -30,6 +30,7 @@ const authAdmin = asyncHandler(async (req, res) => {
       ownerName: admin.ownerName,
       email: admin.email,
       mobile: admin.mobile,
+      address: admin.address,
       role: admin.role,
       token: token,
     });
