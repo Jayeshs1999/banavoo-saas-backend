@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { Resend } from "resend";
 
 dotenv.config();
 
@@ -19,15 +20,13 @@ const createTransporter = () => {
 // Function to send welcome email
 export const sendWelcomeEmail = async (email, name) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: "STHALS <noreply@sthals.in>",
       to: email,
       subject: "Welcome to STHALS.IN - Your PG Registration is Complete!",
+
       html: `
         <!DOCTYPE html>
         <html>
@@ -153,12 +152,7 @@ export const sendWelcomeEmail = async (email, name) => {
         </body>
         </html>
       `,
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    console.log("Welcome email sent successfully to:", email);
-    console.log("Message ID:", result.messageId);
-    return result;
+    });
   } catch (error) {
     console.error("Error sending welcome email:", error);
 
