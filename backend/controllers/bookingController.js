@@ -2,6 +2,11 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Booking from "../models/bookingModel.js";
 import PG from "../models/pgModel.js";
 import User from "../models/userModel.js";
+import Admin from "../models/adminModel.js";
+import {
+  sendBookingNotificationEmail,
+  sendBookingCancellationEmail,
+} from "../utils/emailService.js";
 
 /**
  * @desc    Create a new booking (for users)
@@ -80,6 +85,23 @@ const createBooking = asyncHandler(async (req, res) => {
   });
 
   const createdBooking = await booking.save();
+
+  // Get admin email for notification
+  const admin = await Admin.findById(pg.adminId).select("email pgName");
+
+  // Send email notification to admin
+  if (admin && admin.email) {
+    const userName = req.user.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ""}`
+      : req.user.email;
+    sendBookingNotificationEmail(admin.email, pg.name, userName, {
+      joinDate,
+      stayDays,
+      totalPrice,
+      paymentMethod: paymentMethod || "cash",
+      notes: notes || "",
+    });
+  }
 
   // Populate the booking with PG and user details
   const populatedBooking = await Booking.findById(createdBooking._id)
@@ -171,8 +193,26 @@ const cancelBooking = asyncHandler(async (req, res) => {
     });
   }
 
+  // Get PG details for notification
+  const pg = await PG.findById(booking.pgId).select("name adminId");
+
   booking.status = "cancelled";
   await booking.save();
+
+  // Get admin email for notification
+  const admin = await Admin.findById(pg.adminId).select("email pgName");
+
+  // Send cancellation email notification to admin
+  if (admin && admin.email) {
+    const userName = req.user.firstName
+      ? `${req.user.firstName} ${req.user.lastName || ""}`
+      : req.user.email;
+    sendBookingCancellationEmail(admin.email, pg.name, userName, {
+      joinDate: booking.joinDate,
+      stayDays: booking.stayDays,
+      totalPrice: booking.totalPrice,
+    });
+  }
 
   res.json({
     success: true,

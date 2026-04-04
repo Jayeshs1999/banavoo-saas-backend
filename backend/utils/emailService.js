@@ -187,6 +187,149 @@ export const sendWelcomeEmail = async (email, name) => {
 };
 
 // Function to send verification email (optional enhancement)
+// Function to send booking notification email to admin
+export const sendBookingNotificationEmail = async (
+  adminEmail,
+  pgName,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: "STHALS <noreply@sthals.in>",
+      to: adminEmail,
+      subject: `New Booking Request - ${pgName}`,
+
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>New Booking Request</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .alert { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .btn { display: inline-block; padding: 12px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">STHALS.IN</div>
+                    <h1 style="color: #ffc107;">🏠 New Booking Request!</h1>
+                </div>
+                
+                <div class="alert">
+                    <strong>You have received a new booking request for your PG.</strong>
+                </div>
+                
+                <div class="details">
+                    <h3>Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${pgName}</p>
+                    <p><strong>Tenant:</strong> ${userName}</p>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                    <p><strong>Payment Method:</strong> ${bookingDetails.paymentMethod}</p>
+                    ${bookingDetails.notes ? `<p><strong>Notes:</strong> ${bookingDetails.notes}</p>` : ""}
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/admin/requests" class="btn">View & Manage Request</a>
+                </div>
+                
+                <p>Please log in to your admin dashboard to approve or reject this booking request.</p>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The STHALS.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Booking notification email sent to admin:", adminEmail);
+  } catch (error) {
+    console.error("Error sending booking notification email:", error);
+  }
+};
+
+// Function to send booking cancellation notification email to admin
+export const sendBookingCancellationEmail = async (
+  adminEmail,
+  pgName,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: "STHALS <noreply@sthals.in>",
+      to: adminEmail,
+      subject: `Booking Cancelled - ${pgName}`,
+
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Cancelled</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .alert { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">STHALS.IN</div>
+                    <h1 style="color: #dc3545;">❌ Booking Cancelled</h1>
+                </div>
+                
+                <div class="alert">
+                    <strong>A booking request has been cancelled by the tenant.</strong>
+                </div>
+                
+                <div class="details">
+                    <h3>Cancelled Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${pgName}</p>
+                    <p><strong>Tenant:</strong> ${userName}</p>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                </div>
+                
+                <p>The room/bed is now available again. You may want to update your availability.</p>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The STHALS.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Booking cancellation email sent to admin:", adminEmail);
+  } catch (error) {
+    console.error("Error sending booking cancellation email:", error);
+  }
+};
+
 export const sendVerificationEmail = async (email, name, verificationLink) => {
   try {
     const transporter = createTransporter();
