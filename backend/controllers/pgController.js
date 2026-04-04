@@ -91,7 +91,7 @@ const createPG = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get all PGs
+ * @desc    Get all PGs (Admin only - with populated data)
  * @route   GET /api/pgs
  * @access  Private (Admin only)
  */
@@ -103,6 +103,46 @@ const getPGs = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: pgs,
+  });
+});
+
+/**
+ * @desc    Get all PGs (Public - for users)
+ * @route   GET /api/pgs/public
+ * @access  Public
+ */
+const getPublicPGs = asyncHandler(async (req, res) => {
+  const pgs = await PG.find({})
+    .populate("adminId", "pgName ownerName email")
+    .sort({ createdAt: -1 });
+
+  res.json({
+    success: true,
+    data: pgs,
+  });
+});
+
+/**
+ * @desc    Get PG by ID (Public - for users)
+ * @route   GET /api/pgs/public/:id
+ * @access  Public
+ */
+const getPublicPGById = asyncHandler(async (req, res) => {
+  const pg = await PG.findById(req.params.id).populate(
+    "adminId",
+    "pgName ownerName email mobile",
+  );
+
+  if (!pg) {
+    return res.status(404).json({
+      success: false,
+      message: "PG not found",
+    });
+  }
+
+  res.json({
+    success: true,
+    data: pg,
   });
 });
 
@@ -251,6 +291,8 @@ const searchPGs = asyncHandler(async (req, res) => {
 export {
   createPG,
   getPGs,
+  getPublicPGs,
+  getPublicPGById,
   getAdminPGs,
   getPGById,
   updatePG,
