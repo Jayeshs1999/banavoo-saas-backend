@@ -90,6 +90,46 @@ router.get("/my-bookings", protectUser, getMyBookings);
 
 /**
  * @swagger
+ * /api/bookings/admin:
+ *   get:
+ *     summary: Get all bookings for admin's PGs
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of bookings for admin's PGs
+ *       401:
+ *         description: Not authorized (Admin only)
+ */
+router.get("/admin", protectAdmin, getAdminBookings);
+
+/**
+ * @swagger
+ * /api/bookings/pg/{pgId}:
+ *   get:
+ *     summary: Get bookings for a specific PG
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: pgId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of bookings for the PG
+ *       401:
+ *         description: Not authorized
+ *       404:
+ *         description: PG not found
+ */
+router.get("/pg/:pgId", protectAdmin, getPGBookings);
+
+/**
+ * @swagger
  * /api/bookings/{id}:
  *   get:
  *     summary: Get booking by ID
@@ -135,46 +175,6 @@ router.get("/:id", protectUser, getBooking);
  *         description: Booking not found
  */
 router.put("/:id/cancel", protectUser, cancelBooking);
-
-/**
- * @swagger
- * /api/bookings/admin:
- *   get:
- *     summary: Get all bookings for admin's PGs
- *     tags: [Bookings]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of bookings for admin's PGs
- *       401:
- *         description: Not authorized (Admin only)
- */
-router.get("/admin", protectAdmin, getAdminBookings);
-
-/**
- * @swagger
- * /api/bookings/pg/{pgId}:
- *   get:
- *     summary: Get bookings for a specific PG
- *     tags: [Bookings]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: pgId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of bookings for the PG
- *       401:
- *         description: Not authorized
- *       404:
- *         description: PG not found
- */
-router.get("/pg/:pgId", protectAdmin, getPGBookings);
 
 /**
  * @swagger
