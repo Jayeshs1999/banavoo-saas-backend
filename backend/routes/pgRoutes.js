@@ -2,6 +2,8 @@ import express from "express";
 import {
   createPG,
   getPGs,
+  getPublicPGs,
+  getPublicPGById,
   getPGById,
   updatePG,
   deletePG,
@@ -130,6 +132,43 @@ router.post("/", protectAdmin, createPG);
  *         description: Not authorized
  */
 router.get("/", protectAdmin, getPGs);
+
+/**
+ * @swagger
+ * /api/pgs/public:
+ *   get:
+ *     summary: Get all PGs (Public access)
+ *     tags: [PGs]
+ *     responses:
+ *       200:
+ *         description: List of all PGs
+ *       500:
+ *         description: Server error
+ */
+router.get("/public", getPublicPGs);
+
+/**
+ * @swagger
+ * /api/pgs/public/{id}:
+ *   get:
+ *     summary: Get PG by ID (Public access)
+ *     tags: [PGs]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: PG ID
+ *     responses:
+ *       200:
+ *         description: PG details
+ *       404:
+ *         description: PG not found
+ *       500:
+ *         description: Server error
+ */
+router.get("/public/:id", getPublicPGById);
 
 /**
  * @swagger

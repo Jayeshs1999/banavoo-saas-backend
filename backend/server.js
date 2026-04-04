@@ -3,7 +3,9 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import pgRoutes from "./routes/pgRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
@@ -45,7 +47,9 @@ app.use(
 
 // API Routes
 app.use("/api/admins", adminRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/pgs", pgRoutes);
+app.use("/api/bookings", bookingRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/upload", uploadRoutes);
