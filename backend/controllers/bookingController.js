@@ -6,6 +6,9 @@ import Admin from "../models/adminModel.js";
 import {
   sendBookingNotificationEmail,
   sendBookingCancellationEmail,
+  sendBookingConfirmationToUser,
+  sendBookingApprovalEmail,
+  sendBookingRejectionEmail,
 } from "../utils/emailService.js";
 
 /**
@@ -87,7 +90,13 @@ const createBooking = asyncHandler(async (req, res) => {
   const createdBooking = await booking.save();
 
   // Get admin email for notification
-  const admin = await Admin.findById(pg.adminId).select("email pgName");
+  const admin = await Admin.findById(pg.adminId).select(
+    "email pgName ownerName mobile",
+  );
+
+  // Get room and bed details for email
+  const roomName = room.name;
+  const bedIndex = room.beds.findIndex((b) => b._id.toString() === bedId) + 1;
 
   // Send email notification to admin
   if (admin && admin.email) {
@@ -95,11 +104,30 @@ const createBooking = asyncHandler(async (req, res) => {
       ? `${req.user.firstName} ${req.user.lastName || ""}`
       : req.user.email;
     sendBookingNotificationEmail(admin.email, pg.name, userName, {
+      roomName,
+      bedNumber: bedIndex,
       joinDate,
       stayDays,
       totalPrice,
       paymentMethod: paymentMethod || "cash",
       notes: notes || "",
+    });
+  }
+
+  // Send confirmation email to user
+  const user = req.user;
+  const userEmail = user.email;
+  if (userEmail) {
+    sendBookingConfirmationToUser(userEmail, user.firstName || userEmail, {
+      pgName: pg.name,
+      roomName,
+      bedNumber: bedIndex,
+      joinDate,
+      stayDays,
+      totalPrice,
+      paymentMethod: paymentMethod || "cash",
+      adminName: admin?.ownerName || "PG Admin",
+      adminPhone: admin?.mobile || "Not available",
     });
   }
 
@@ -122,12 +150,32 @@ const createBooking = asyncHandler(async (req, res) => {
  */
 const getMyBookings = asyncHandler(async (req, res) => {
   const bookings = await Booking.find({ userId: req.user._id })
-    .populate("pgId", "name location photos onlinePayment")
+    .populate({
+      path: "pgId",
+      select: "name location photos onlinePayment adminId",
+      populate: {
+        path: "adminId",
+        select: "mobile email ownerName pgName",
+      },
+    })
     .sort({ createdAt: -1 });
+
+  // Enrich bookings with admin contact info
+  const enrichedBookings = bookings.map((booking) => ({
+    ...booking.toObject(),
+    adminContact: booking.pgId?.adminId
+      ? {
+          name: booking.pgId.adminId.ownerName || "PG Admin",
+          phone: booking.pgId.adminId.mobile || "Not available",
+          email: booking.pgId.adminId.email || "Not available",
+          pgName: booking.pgId.adminId.pgName || booking.pgId.name,
+        }
+      : null,
+  }));
 
   res.json({
     success: true,
-    data: bookings,
+    data: enrichedBookings,
   });
 });
 
@@ -232,13 +280,53 @@ const getAdminBookings = asyncHandler(async (req, res) => {
   const pgIds = adminPGs.map((pg) => pg._id);
 
   const bookings = await Booking.find({ pgId: { $in: pgIds } })
-    .populate("pgId", "name location")
+    .populate("pgId", "name location structure")
     .populate("userId", "firstName lastName email mobile")
     .sort({ createdAt: -1 });
 
+  // Enrich bookings with room and bed details
+  const enrichedBookings = bookings.map((booking) => {
+    const pg = booking.pgId;
+    // Use custom 'id' field for lookup, fallback to _id for backward compatibility
+    const room = pg.structure?.find(
+      (r) => r.id === booking.roomId || r._id.toString() === booking.roomId,
+    );
+    const bed = room?.beds?.find(
+      (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+    );
+    const bedIndex =
+      room?.beds?.findIndex(
+        (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+      ) + 1;
+
+    return {
+      _id: booking._id,
+      pgId: {
+        _id: pg._id,
+        name: pg.name,
+        location: pg.location,
+      },
+      userId: booking.userId,
+      roomId: booking.roomId,
+      bedId: booking.bedId,
+      joinDate: booking.joinDate,
+      stayDays: booking.stayDays,
+      status: booking.status,
+      totalPrice: booking.totalPrice,
+      paymentMethod: booking.paymentMethod,
+      notes: booking.notes,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+      // Added details
+      roomName: room?.name || "Unknown",
+      bedNumber: bedIndex || "N/A",
+      bedPrice: bed?.price || 0,
+    };
+  });
+
   res.json({
     success: true,
-    data: bookings,
+    data: enrichedBookings,
   });
 });
 
@@ -305,12 +393,111 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  booking.status = status;
+  // Track if we need to update bed allocation
+  let bedAllocated = false;
+
   if (status === "approved") {
+    booking.status = status;
     booking.paymentStatus = "pending";
+
+    // Mark the bed as allocated in the PG structure
+    const room = pg.structure?.find(
+      (r) => r.id === booking.roomId || r._id.toString() === booking.roomId,
+    );
+    if (room) {
+      const bed = room.beds?.find(
+        (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+      );
+      if (bed && !bed.allocated) {
+        bed.allocated = true;
+        bedAllocated = true;
+      }
+    }
+
+    // Save the PG with updated bed allocation
+    if (bedAllocated) {
+      await pg.save();
+    }
+  } else if (status === "rejected" || status === "cancelled") {
+    booking.status = status;
+
+    // If the booking was previously approved, we might want to deallocate the bed
+    // But only if there's no other approved booking for the same bed
+    const room = pg.structure?.find(
+      (r) => r.id === booking.roomId || r._id.toString() === booking.roomId,
+    );
+    if (room) {
+      const bed = room.beds?.find(
+        (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+      );
+      if (bed && bed.allocated) {
+        // Check if there are other approved bookings for this bed
+        const otherApprovedBookings = await Booking.countDocuments({
+          pgId: booking.pgId._id,
+          roomId: booking.roomId,
+          bedId: booking.bedId,
+          status: "approved",
+          _id: { $ne: booking._id },
+        });
+
+        // If no other approved bookings, deallocate the bed
+        if (otherApprovedBookings === 0) {
+          bed.allocated = false;
+          await pg.save();
+        }
+      }
+    }
+  } else {
+    booking.status = status;
   }
 
   await booking.save();
+
+  // Send email notification to user about the status change
+  const user = booking.userId;
+  const userEmail = user?.email;
+  if (userEmail && (status === "approved" || status === "rejected")) {
+    // Get admin contact info for the email
+    const admin = await Admin.findById(pg.adminId).select(
+      "email ownerName mobile pgName",
+    );
+
+    // Get room and bed details
+    const room = pg.structure?.find(
+      (r) => r.id === booking.roomId || r._id.toString() === booking.roomId,
+    );
+    const roomName = room?.name || "Unknown";
+    const bedIndex =
+      room?.beds?.findIndex(
+        (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+      ) + 1;
+
+    const bookingDetails = {
+      pgName: pg.name,
+      roomName,
+      bedNumber: bedIndex || "N/A",
+      joinDate: booking.joinDate,
+      stayDays: booking.stayDays,
+      totalPrice: booking.totalPrice,
+      paymentMethod: booking.paymentMethod,
+      adminName: admin?.ownerName || "PG Admin",
+      adminPhone: admin?.mobile || "Not available",
+    };
+
+    if (status === "approved") {
+      sendBookingApprovalEmail(
+        userEmail,
+        user.firstName || userEmail,
+        bookingDetails,
+      );
+    } else if (status === "rejected") {
+      sendBookingRejectionEmail(
+        userEmail,
+        user.firstName || userEmail,
+        bookingDetails,
+      );
+    }
+  }
 
   const updatedBooking = await Booking.findById(booking._id)
     .populate("pgId", "name location")
