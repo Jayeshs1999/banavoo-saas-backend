@@ -195,13 +195,15 @@ export const sendBookingNotificationEmail = async (
   bookingDetails,
 ) => {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const transporter = createTransporter();
 
-    await resend.emails.send({
-      from: "STHALS <noreply@sthals.in>",
+    const mailOptions = {
+      from: {
+        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
+        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+      },
       to: adminEmail,
       subject: `New Booking Request - ${pgName}`,
-
       html: `
         <!DOCTYPE html>
         <html>
@@ -218,6 +220,7 @@ export const sendBookingNotificationEmail = async (
                 .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
                 .btn { display: inline-block; padding: 12px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
                 .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+                .highlight { background-color: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
             </style>
         </head>
         <body>
@@ -235,6 +238,7 @@ export const sendBookingNotificationEmail = async (
                     <h3>Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${pgName}</p>
                     <p><strong>Tenant:</strong> ${userName}</p>
+                    ${bookingDetails.roomName ? `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>` : ""}
                     <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
                     <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
@@ -255,10 +259,94 @@ export const sendBookingNotificationEmail = async (
         </body>
         </html>
       `,
-    });
+    };
+
+    await transporter.sendMail(mailOptions);
     console.log("Booking notification email sent to admin:", adminEmail);
   } catch (error) {
     console.error("Error sending booking notification email:", error);
+  }
+};
+
+// Function to send booking confirmation email to user
+export const sendBookingConfirmationToUser = async (
+  userEmail,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: {
+        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
+        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+      },
+      to: userEmail,
+      subject: `Booking Request Submitted - ${bookingDetails.pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Request Submitted</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .success { background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .highlight { background-color: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
+                .info-box { background-color: #fff3cd; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">STHALS.IN</div>
+                    <h1 style="color: #28a745;">✅ Booking Request Submitted!</h1>
+                </div>
+                
+                <div class="success">
+                    <strong>Hello ${userName}!</strong><br>
+                    Your booking request has been submitted successfully. The PG admin will review your request and respond soon.
+                </div>
+                
+                <div class="details">
+                    <h3>Booking Summary:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                    <p><strong>Payment Method:</strong> ${bookingDetails.paymentMethod}</p>
+                </div>
+                
+                <div class="info-box">
+                    <h4>📞 Contact PG Admin:</h4>
+                    <p><strong>Name:</strong> ${bookingDetails.adminName}</p>
+                    <p><strong>Phone:</strong> ${bookingDetails.adminPhone}</p>
+                    <p><em>You can call the admin directly to discuss your booking and speed up the approval process.</em></p>
+                </div>
+                
+                <p>You can view your booking status anytime by logging into your account and visiting the "My Requests" page.</p>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The STHALS.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Booking confirmation email sent to user:", userEmail);
+  } catch (error) {
+    console.error("Error sending booking confirmation email:", error);
   }
 };
 
@@ -270,13 +358,15 @@ export const sendBookingCancellationEmail = async (
   bookingDetails,
 ) => {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const transporter = createTransporter();
 
-    await resend.emails.send({
-      from: "STHALS <noreply@sthals.in>",
+    const mailOptions = {
+      from: {
+        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
+        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+      },
       to: adminEmail,
       subject: `Booking Cancelled - ${pgName}`,
-
       html: `
         <!DOCTYPE html>
         <html>
@@ -323,10 +413,192 @@ export const sendBookingCancellationEmail = async (
         </body>
         </html>
       `,
-    });
+    };
+
+    await transporter.sendMail(mailOptions);
     console.log("Booking cancellation email sent to admin:", adminEmail);
   } catch (error) {
     console.error("Error sending booking cancellation email:", error);
+  }
+};
+
+// Function to send booking approval email to user
+export const sendBookingApprovalEmail = async (
+  userEmail,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: {
+        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
+        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+      },
+      to: userEmail,
+      subject: `🎉 Booking Approved - ${bookingDetails.pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Approved</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .success { background-color: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .highlight { background-color: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
+                .info-box { background-color: #fff3cd; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+                .btn { display: inline-block; padding: 12px 30px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">STHALS.IN</div>
+                    <h1 style="color: #28a745;">🎉 Booking Approved!</h1>
+                </div>
+                
+                <div class="success">
+                    <strong>Congratulations ${userName}!</strong><br>
+                    Your booking request has been approved by the PG admin. Your room is now reserved!
+                </div>
+                
+                <div class="details">
+                    <h3>Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                    <p><strong>Payment Method:</strong> ${bookingDetails.paymentMethod}</p>
+                </div>
+                
+                <div class="info-box">
+                    <h4>📞 PG Admin Contact:</h4>
+                    <p><strong>Name:</strong> ${bookingDetails.adminName}</p>
+                    <p><strong>Phone:</strong> ${bookingDetails.adminPhone}</p>
+                    <p><em>You can contact the admin for any questions about your stay.</em></p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/requests" class="btn">View My Bookings</a>
+                </div>
+                
+                <p><strong>Next Steps:</strong></p>
+                <ul>
+                    <li>Save the admin's contact information</li>
+                    <li>Arrive on your join date as scheduled</li>
+                    <li>Bring necessary documents for verification</li>
+                </ul>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The STHALS.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Booking approval email sent to user:", userEmail);
+  } catch (error) {
+    console.error("Error sending booking approval email:", error);
+  }
+};
+
+// Function to send booking rejection email to user
+export const sendBookingRejectionEmail = async (
+  userEmail,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: {
+        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
+        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+      },
+      to: userEmail,
+      subject: `Booking Request Update - ${bookingDetails.pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Request Update</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .alert { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .info-box { background-color: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+                .btn { display: inline-block; padding: 12px 30px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">STHALS.IN</div>
+                    <h1 style="color: #dc3545;">Booking Request Update</h1>
+                </div>
+                
+                <div class="alert">
+                    <strong>Hello ${userName},</strong><br>
+                    Unfortunately, your booking request has been rejected by the PG admin.
+                </div>
+                
+                <div class="details">
+                    <h3>Rejected Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <p><strong>Room:</strong> ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</p>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                </div>
+                
+                <div class="info-box">
+                    <h4>💡 What's Next?</h4>
+                    <p>Don't worry! You can:</p>
+                    <ul>
+                        <li>Browse other available PGs on our platform</li>
+                        <li>Contact the admin directly to understand the reason</li>
+                        <li>Submit a new booking request for a different room/bed</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/dashboard" class="btn">Browse Available PGs</a>
+                </div>
+                
+                <p>If you have any questions or need assistance finding alternative accommodation, please don't hesitate to contact our support team.</p>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The STHALS.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Booking rejection email sent to user:", userEmail);
+  } catch (error) {
+    console.error("Error sending booking rejection email:", error);
   }
 };
 
