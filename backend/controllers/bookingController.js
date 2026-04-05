@@ -10,6 +10,10 @@ import {
   sendBookingApprovalEmail,
   sendBookingRejectionEmail,
 } from "../utils/emailService.js";
+import {
+  calculatePriceByPeriod,
+  validateBookingDates,
+} from "../utils/priceCalculator.js";
 
 /**
  * @desc    Create a new booking (for users)
@@ -70,8 +74,19 @@ const createBooking = asyncHandler(async (req, res) => {
     });
   }
 
-  // Calculate total price
-  const totalPrice = bed.price * stayDays;
+  // Calculate check-out date based on join date and stay days
+  const checkInDate = new Date(joinDate);
+  const checkOutDate = new Date(checkInDate);
+  checkOutDate.setDate(checkOutDate.getDate() + stayDays);
+
+  // Calculate total price using the price calculator
+  // The pricing is based on the room's pricing period (day or month)
+  const { totalPrice } = calculatePriceByPeriod({
+    checkIn: checkInDate,
+    checkOut: checkOutDate,
+    price: bed.price,
+    pricingPeriod: room.pricingPeriod || "month",
+  });
 
   // Create booking
   const booking = new Booking({
@@ -79,7 +94,7 @@ const createBooking = asyncHandler(async (req, res) => {
     pgId,
     roomId,
     bedId,
-    joinDate: new Date(joinDate),
+    joinDate: checkInDate,
     stayDays,
     totalPrice,
     notes: notes || "",
@@ -152,7 +167,7 @@ const getMyBookings = asyncHandler(async (req, res) => {
   const bookings = await Booking.find({ userId: req.user._id })
     .populate({
       path: "pgId",
-      select: "name location photos onlinePayment adminId",
+      select: "name location photos onlinePayment adminId structure",
       populate: {
         path: "adminId",
         select: "mobile email ownerName pgName",
@@ -160,18 +175,53 @@ const getMyBookings = asyncHandler(async (req, res) => {
     })
     .sort({ createdAt: -1 });
 
-  // Enrich bookings with admin contact info
-  const enrichedBookings = bookings.map((booking) => ({
-    ...booking.toObject(),
-    adminContact: booking.pgId?.adminId
-      ? {
-          name: booking.pgId.adminId.ownerName || "PG Admin",
-          phone: booking.pgId.adminId.mobile || "Not available",
-          email: booking.pgId.adminId.email || "Not available",
-          pgName: booking.pgId.adminId.pgName || booking.pgId.name,
-        }
-      : null,
-  }));
+  // Enrich bookings with admin contact info and price breakdown
+  const enrichedBookings = bookings.map((booking) => {
+    const pg = booking.pgId;
+    // Find room and bed for price breakdown
+    const room = pg?.structure?.find(
+      (r) => r.id === booking.roomId || r._id.toString() === booking.roomId,
+    );
+    const bed = room?.beds?.find(
+      (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
+    );
+
+    // Calculate pricing breakdown based on room's pricing period
+    const pricingPeriod = room?.pricingPeriod || "month";
+    const checkInDate = new Date(booking.joinDate);
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + booking.stayDays);
+    const days = Math.ceil(
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24),
+    );
+    const months = Math.max(1, Math.ceil(days / 30));
+    const unitCount = pricingPeriod === "day" ? days : months;
+
+    return {
+      ...booking.toObject(),
+      adminContact: pg?.adminId
+        ? {
+            name: pg.adminId.ownerName || "PG Admin",
+            phone: pg.adminId.mobile || "Not available",
+            email: pg.adminId.email || "Not available",
+            pgName: pg.adminId.pgName || pg.name,
+          }
+        : null,
+      bedPrice: bed?.price || 0,
+      pricingPeriod,
+      priceBreakdown: {
+        unitCount,
+        unitLabel:
+          pricingPeriod === "day"
+            ? days === 1
+              ? "day"
+              : "days"
+            : months === 1
+              ? "month"
+              : "months",
+      },
+    };
+  });
 
   res.json({
     success: true,
@@ -299,6 +349,17 @@ const getAdminBookings = asyncHandler(async (req, res) => {
         (b) => b.id === booking.bedId || b._id.toString() === booking.bedId,
       ) + 1;
 
+    // Calculate pricing breakdown based on room's pricing period
+    const pricingPeriod = room?.pricingPeriod || "month";
+    const checkInDate = new Date(booking.joinDate);
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + booking.stayDays);
+    const days = Math.ceil(
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24),
+    );
+    const months = Math.max(1, Math.ceil(days / 30));
+    const unitCount = pricingPeriod === "day" ? days : months;
+
     return {
       _id: booking._id,
       pgId: {
@@ -321,6 +382,18 @@ const getAdminBookings = asyncHandler(async (req, res) => {
       roomName: room?.name || "Unknown",
       bedNumber: bedIndex || "N/A",
       bedPrice: bed?.price || 0,
+      pricingPeriod,
+      priceBreakdown: {
+        unitCount,
+        unitLabel:
+          pricingPeriod === "day"
+            ? days === 1
+              ? "day"
+              : "days"
+            : months === 1
+              ? "month"
+              : "months",
+      },
     };
   });
 
