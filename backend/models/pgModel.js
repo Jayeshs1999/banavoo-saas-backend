@@ -116,6 +116,10 @@ const pgSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isPrivate: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

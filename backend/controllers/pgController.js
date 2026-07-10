@@ -14,6 +14,7 @@ const createPG = asyncHandler(async (req, res) => {
     structure,
     onlinePayment = false,
     location,
+    isPrivate = false,
   } = req.body;
 
   // Validate required fields
@@ -79,6 +80,7 @@ const createPG = asyncHandler(async (req, res) => {
     onlinePayment,
     location,
     adminId: req.admin._id,
+    isPrivate,
   });
 
   const createdPG = await pg.save();
@@ -112,7 +114,7 @@ const getPGs = asyncHandler(async (req, res) => {
  * @access  Public
  */
 const getPublicPGs = asyncHandler(async (req, res) => {
-  const pgs = await PG.find({})
+  const pgs = await PG.find({ isPrivate: { $ne: true } })
     .populate("adminId", "pgName ownerName email")
     .sort({ createdAt: -1 });
 
@@ -133,7 +135,7 @@ const getPublicPGById = asyncHandler(async (req, res) => {
     "pgName ownerName email mobile",
   );
 
-  if (!pg) {
+  if (!pg || pg.isPrivate) {
     return res.status(404).json({
       success: false,
       message: "PG not found",
@@ -198,7 +200,7 @@ const getPGById = asyncHandler(async (req, res) => {
  * @access  Private (Admin only)
  */
 const updatePG = asyncHandler(async (req, res) => {
-  const { name, photos, structure, onlinePayment, location } = req.body;
+  const { name, photos, structure, onlinePayment, location, isPrivate } = req.body;
 
   const pg = await PG.findById(req.params.id);
 
@@ -223,6 +225,7 @@ const updatePG = asyncHandler(async (req, res) => {
   if (structure) pg.structure = structure;
   if (onlinePayment !== undefined) pg.onlinePayment = onlinePayment;
   if (location) pg.location = location;
+  if (isPrivate !== undefined) pg.isPrivate = isPrivate;
 
   const updatedPG = await pg.save();
 
