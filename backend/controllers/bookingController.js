@@ -444,7 +444,9 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  const booking = await Booking.findById(req.params.id).populate("pgId");
+  const booking = await Booking.findById(req.params.id)
+    .populate("pgId")
+    .populate("userId", "firstName lastName email");
 
   if (!booking) {
     return res.status(404).json({

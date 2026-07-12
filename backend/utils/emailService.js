@@ -1,21 +1,10 @@
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import { Resend } from "resend";
 
 dotenv.config();
 
-// Create a transporter using SMTP
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: process.env.SMTP_PORT || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-};
+// Shared Resend sender address
+const FROM_ADDRESS = "STHALS <noreply@sthals.in>";
 
 // Function to send welcome email
 export const sendWelcomeEmail = async (email, name) => {
@@ -195,13 +184,10 @@ export const sendBookingNotificationEmail = async (
   bookingDetails,
 ) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to: adminEmail,
       subject: `New Booking Request - ${pgName}`,
       html: `
@@ -259,9 +245,7 @@ export const sendBookingNotificationEmail = async (
         </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     console.log("Booking notification email sent to admin:", adminEmail);
   } catch (error) {
     console.error("Error sending booking notification email:", error);
@@ -275,13 +259,10 @@ export const sendBookingConfirmationToUser = async (
   bookingDetails,
 ) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to: userEmail,
       subject: `Booking Request Submitted - ${bookingDetails.pgName}`,
       html: `
@@ -341,9 +322,7 @@ export const sendBookingConfirmationToUser = async (
         </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     console.log("Booking confirmation email sent to user:", userEmail);
   } catch (error) {
     console.error("Error sending booking confirmation email:", error);
@@ -358,13 +337,10 @@ export const sendBookingCancellationEmail = async (
   bookingDetails,
 ) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to: adminEmail,
       subject: `Booking Cancelled - ${pgName}`,
       html: `
@@ -413,9 +389,7 @@ export const sendBookingCancellationEmail = async (
         </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     console.log("Booking cancellation email sent to admin:", adminEmail);
   } catch (error) {
     console.error("Error sending booking cancellation email:", error);
@@ -429,13 +403,10 @@ export const sendBookingApprovalEmail = async (
   bookingDetails,
 ) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to: userEmail,
       subject: `🎉 Booking Approved - ${bookingDetails.pgName}`,
       html: `
@@ -505,9 +476,7 @@ export const sendBookingApprovalEmail = async (
         </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     console.log("Booking approval email sent to user:", userEmail);
   } catch (error) {
     console.error("Error sending booking approval email:", error);
@@ -521,13 +490,10 @@ export const sendBookingRejectionEmail = async (
   bookingDetails,
 ) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    await resend.emails.send({
+      from: FROM_ADDRESS,
       to: userEmail,
       subject: `Booking Request Update - ${bookingDetails.pgName}`,
       html: `
@@ -593,9 +559,7 @@ export const sendBookingRejectionEmail = async (
         </body>
         </html>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
     console.log("Booking rejection email sent to user:", userEmail);
   } catch (error) {
     console.error("Error sending booking rejection email:", error);
@@ -604,13 +568,10 @@ export const sendBookingRejectionEmail = async (
 
 export const sendVerificationEmail = async (email, name, verificationLink) => {
   try {
-    const transporter = createTransporter();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const mailOptions = {
-      from: {
-        name: process.env.SMTP_FROM_NAME || "STHALS.IN",
-        address: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
-      },
+    const result = await resend.emails.send({
+      from: FROM_ADDRESS,
       to: email,
       subject: "Verify Your Email Address - STHALS.IN",
       html: `
@@ -656,9 +617,7 @@ export const sendVerificationEmail = async (email, name, verificationLink) => {
         </body>
         </html>
       `,
-    };
-
-    const result = await transporter.sendMail(mailOptions);
+    });
     console.log("Verification email sent successfully to:", email);
     return result;
   } catch (error) {
