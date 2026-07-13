@@ -15,6 +15,7 @@ const createPG = asyncHandler(async (req, res) => {
     onlinePayment = false,
     location,
     isPrivate = false,
+    amenities = {},
   } = req.body;
 
   // Validate required fields
@@ -81,6 +82,7 @@ const createPG = asyncHandler(async (req, res) => {
     location,
     adminId: req.admin._id,
     isPrivate,
+    amenities,
   });
 
   const createdPG = await pg.save();
@@ -200,7 +202,7 @@ const getPGById = asyncHandler(async (req, res) => {
  * @access  Private (Admin only)
  */
 const updatePG = asyncHandler(async (req, res) => {
-  const { name, photos, structure, onlinePayment, location, isPrivate } = req.body;
+  const { name, photos, structure, onlinePayment, location, isPrivate, amenities } = req.body;
 
   const pg = await PG.findById(req.params.id);
 
@@ -226,6 +228,7 @@ const updatePG = asyncHandler(async (req, res) => {
   if (onlinePayment !== undefined) pg.onlinePayment = onlinePayment;
   if (location) pg.location = location;
   if (isPrivate !== undefined) pg.isPrivate = isPrivate;
+  if (amenities !== undefined) pg.amenities = { ...pg.amenities?.toObject?.() ?? {}, ...amenities };
 
   const updatedPG = await pg.save();
 

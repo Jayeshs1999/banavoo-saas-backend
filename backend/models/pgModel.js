@@ -77,6 +77,59 @@ const locationSchema = new mongoose.Schema({
   },
 });
 
+const amenitiesSchema = new mongoose.Schema(
+  {
+    // House Rules
+    smokingAllowed:   { type: Boolean, default: false },
+    drinkingAllowed:  { type: Boolean, default: false },
+    cookingAllowed:   { type: Boolean, default: false },
+    nonVegAllowed:    { type: Boolean, default: true  },
+    guestsAllowed:    { type: Boolean, default: false },
+    petsAllowed:      { type: Boolean, default: false },
+
+    // Appliances & Comfort
+    acAvailable:              { type: Boolean, default: false },
+    fanAvailable:             { type: Boolean, default: true  },
+    fridgeAvailable:          { type: Boolean, default: false },
+    washingMachineAvailable:  { type: Boolean, default: false },
+    tvAvailable:              { type: Boolean, default: false },
+    wifiAvailable:            { type: Boolean, default: false },
+    inverterAvailable:        { type: Boolean, default: false },
+
+    // Bathroom / Toilet
+    attachedBathroom:   { type: Boolean, default: false },
+    attachedToilet:     { type: Boolean, default: false },
+    sharedBathrooms:    { type: Number,  default: 0    },
+    sharedToilets:      { type: Number,  default: 0    },
+    geyserAvailable:    { type: Boolean, default: false },
+
+    // Storage & Security
+    lockerAvailable:    { type: Boolean, default: false },
+    cctvAvailable:      { type: Boolean, default: false },
+    securityGuard:      { type: Boolean, default: false },
+    mainGateLock:       { type: Boolean, default: false },
+
+    // Parking
+    twoWheelerParking:  { type: Boolean, default: false },
+    fourWheelerParking: { type: Boolean, default: false },
+
+    // Food
+    breakfastAvailable: { type: Boolean, default: false },
+    lunchAvailable:     { type: Boolean, default: false },
+    dinnerAvailable:    { type: Boolean, default: false },
+    messAvailable:      { type: Boolean, default: false },
+
+    // Other Facilities
+    gallaryAvailable:       { type: Boolean, default: false },
+    gymAvailable:           { type: Boolean, default: false },
+    studyRoomAvailable:     { type: Boolean, default: false },
+    powerBackup:            { type: Boolean, default: false },
+    housekeepingAvailable:  { type: Boolean, default: false },
+    bikeRental:             { type: Boolean, default: false },
+  },
+  { _id: false },
+);
+
 const pgSchema = new mongoose.Schema(
   {
     name: {
@@ -119,6 +172,10 @@ const pgSchema = new mongoose.Schema(
     isPrivate: {
       type: Boolean,
       default: false,
+    },
+    amenities: {
+      type: amenitiesSchema,
+      default: () => ({}),
     },
   },
   {
