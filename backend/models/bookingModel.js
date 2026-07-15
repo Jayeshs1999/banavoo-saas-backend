@@ -56,6 +56,18 @@ const bookingSchema = new mongoose.Schema(
       enum: ["online", "cash"],
       default: "cash",
     },
+    razorpayOrderId: {
+      type: String,
+      default: null,
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
+    razorpaySignature: {
+      type: String,
+      default: null,
+    },
     notes: {
       type: String,
       maxlength: [500, "Notes cannot exceed 500 characters"],

@@ -7,6 +7,8 @@ import {
   getAdminBookings,
   getPGBookings,
   updateBookingStatus,
+  createPaymentOrder,
+  verifyPayment,
 } from "../controllers/bookingController.js";
 import { protectUser, protectAdmin } from "../middleware/authMiddleware.js";
 
@@ -213,5 +215,8 @@ router.put("/:id/cancel", protectUser, cancelBooking);
  *         description: Booking not found
  */
 router.put("/:id/status", protectAdmin, updateBookingStatus);
+
+router.post("/:id/create-payment-order", protectUser, createPaymentOrder);
+router.post("/:id/verify-payment", protectUser, verifyPayment);
 
 export default router;
