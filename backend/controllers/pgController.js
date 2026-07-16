@@ -229,6 +229,7 @@ const updatePG = asyncHandler(async (req, res) => {
   if (location) pg.location = location;
   if (isPrivate !== undefined) pg.isPrivate = isPrivate;
   if (amenities !== undefined) pg.amenities = { ...pg.amenities?.toObject?.() ?? {}, ...amenities };
+  // lat/lng are embedded inside location — already handled by `if (location) pg.location = location`
 
   const updatedPG = await pg.save();
 

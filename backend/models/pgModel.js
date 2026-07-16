@@ -75,6 +75,14 @@ const locationSchema = new mongoose.Schema({
     required: [true, "Pin code is required"],
     trim: true,
   },
+  lat: {
+    type: Number,
+    default: null,
+  },
+  lng: {
+    type: Number,
+    default: null,
+  },
 });
 
 const amenitiesSchema = new mongoose.Schema(
