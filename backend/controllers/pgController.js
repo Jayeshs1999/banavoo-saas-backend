@@ -111,18 +111,111 @@ const getPGs = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get all PGs (Public - for users)
+ * @desc    Get all public PGs with optional filtering + server-side pagination
  * @route   GET /api/pgs/public
+ * @query   page, limit, search, city, subcity, state, minPrice, maxPrice,
+ *          onlinePayment, availableOnly, amenities (comma-separated keys), sortBy
  * @access  Public
  */
 const getPublicPGs = asyncHandler(async (req, res) => {
-  const pgs = await PG.find({ isPrivate: { $ne: true } })
+  const {
+    page        = 1,
+    limit       = 9,
+    search      = "",
+    city        = "",
+    subcity     = "",
+    state       = "",
+    minPrice    = "",
+    maxPrice    = "",
+    onlinePayment = "",
+    availableOnly = "",
+    amenities   = "",    // e.g. "wifiAvailable,acAvailable"
+    sortBy      = "default",
+  } = req.query;
+
+  // ── Base filter: never return private PGs ──────────────────────────────
+  const filter = { isPrivate: { $ne: true } };
+
+  // ── Text search across name + location ────────────────────────────────
+  if (search) {
+    const re = { $regex: search, $options: "i" };
+    filter.$or = [
+      { name: re },
+      { "location.city": re },
+      { "location.subcity": re },
+      { "location.state": re },
+    ];
+  }
+
+  // ── Location filters ───────────────────────────────────────────────────
+  if (city)    filter["location.city"]    = { $regex: city,    $options: "i" };
+  if (subcity) filter["location.subcity"] = { $regex: subcity, $options: "i" };
+  if (state)   filter["location.state"]   = { $regex: state,   $options: "i" };
+
+  // ── Online payment ─────────────────────────────────────────────────────
+  if (onlinePayment === "true") filter.onlinePayment = true;
+
+  // ── Amenity filters — each must be true ───────────────────────────────
+  if (amenities) {
+    amenities.split(",").forEach((key) => {
+      const k = key.trim();
+      if (k) filter[`amenities.${k}`] = true;
+    });
+  }
+
+  // ── Sort ───────────────────────────────────────────────────────────────
+  let sort = { createdAt: -1 };
+  if (sortBy === "name_asc")  sort = { name: 1 };
+  if (sortBy === "name_desc") sort = { name: -1 };
+  // price / beds sorts are applied post-query (computed fields)
+
+  // ── Pagination ─────────────────────────────────────────────────────────
+  const pageNum  = Math.max(1, parseInt(page)  || 1);
+  const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 9));
+
+  let pgs = await PG.find(filter)
     .populate("adminId", "pgName ownerName email")
-    .sort({ createdAt: -1 });
+    .sort(sort)
+    .lean();   // lean() for faster reads; we compute virtual fields manually
+
+  // ── Attach computed fields ─────────────────────────────────────────────
+  pgs = pgs.map((pg) => {
+    const totalBeds     = pg.structure.reduce((s, r) => s + r.beds.length, 0);
+    const availableBeds = pg.structure.reduce((s, r) => s + r.beds.filter((b) => !b.allocated).length, 0);
+    const minPriceVal   = pg.structure.length
+      ? Math.min(...pg.structure.map((r) => r.price))
+      : 0;
+    return { ...pg, _availableBeds: availableBeds, _totalBeds: totalBeds, _minPrice: minPriceVal };
+  });
+
+  // ── Post-query filters (need computed fields) ──────────────────────────
+  if (availableOnly === "true") {
+    pgs = pgs.filter((pg) => pg._availableBeds > 0);
+  }
+  if (minPrice) pgs = pgs.filter((pg) => pg._minPrice >= parseFloat(minPrice));
+  if (maxPrice) pgs = pgs.filter((pg) => pg._minPrice <= parseFloat(maxPrice));
+
+  // ── Post-query sort ────────────────────────────────────────────────────
+  if (sortBy === "price_asc")  pgs.sort((a, b) => a._minPrice - b._minPrice);
+  if (sortBy === "price_desc") pgs.sort((a, b) => b._minPrice - a._minPrice);
+  if (sortBy === "beds_desc")  pgs.sort((a, b) => b._availableBeds - a._availableBeds);
+
+  // ── Paginate ───────────────────────────────────────────────────────────
+  const total      = pgs.length;
+  const totalPages = Math.ceil(total / limitNum);
+  const skip       = (pageNum - 1) * limitNum;
+  const paginated  = pgs.slice(skip, skip + limitNum);
 
   res.json({
     success: true,
-    data: pgs,
+    data: paginated,
+    pagination: {
+      page:       pageNum,
+      limit:      limitNum,
+      total,
+      totalPages,
+      hasMore:    pageNum < totalPages,
+    },
   });
 });
 
