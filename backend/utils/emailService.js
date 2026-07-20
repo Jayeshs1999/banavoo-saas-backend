@@ -175,6 +175,145 @@ export const sendWelcomeEmail = async (email, name) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────
+// Welcome email for USERS (tenants looking for PG)
+// Green theme — different from the admin PG-owner welcome above
+// ─────────────────────────────────────────────────────────────
+export const sendUserWelcomeEmail = async (email, firstName, lastName) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const fullName = `${firstName} ${lastName || ""}`.trim();
+
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: email,
+      subject: "Welcome to BedWale.in — Your account is ready! 🏠",
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to BedWale.in</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0fdf4;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+
+  <!-- Outer wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;padding:32px 16px;">
+    <tr><td align="center">
+
+      <!-- Card -->
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #d1fae5;max-width:600px;width:100%;">
+
+        <!-- Header banner -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#16a34a 0%,#059669 60%,#0d9488 100%);padding:40px 40px 32px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:12px;padding:10px 16px;margin-bottom:16px;">
+              <span style="font-size:28px;">🏠</span>
+            </div>
+            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">BedWale.in</h1>
+            <p style="margin:8px 0 0;color:#d1fae5;font-size:14px;">Find a PG that feels like home</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 40px 28px;">
+
+            <!-- Greeting -->
+            <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111827;">
+              Welcome, ${fullName}! 🎉
+            </p>
+            <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+              Your account has been created successfully. You're all set to start exploring PGs near you.
+            </p>
+
+            <!-- Registration info box -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:28px;">
+              <tr>
+                <td style="padding:18px 20px;">
+                  <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.5px;">Account Details</p>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:3px 0;font-size:14px;color:#374151;white-space:nowrap;padding-right:12px;">👤 Name:</td>
+                      <td style="padding:3px 0;font-size:14px;color:#111827;font-weight:600;">${fullName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:3px 0;font-size:14px;color:#374151;white-space:nowrap;padding-right:12px;">📧 Email:</td>
+                      <td style="padding:3px 0;font-size:14px;color:#111827;font-weight:600;">${email}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:3px 0;font-size:14px;color:#374151;white-space:nowrap;padding-right:12px;">📅 Joined:</td>
+                      <td style="padding:3px 0;font-size:14px;color:#111827;font-weight:600;">${new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- What you can do -->
+            <p style="margin:0 0 14px;font-size:15px;font-weight:700;color:#111827;">What can you do now?</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              ${[
+                ["🔍", "Search PGs", "Filter by city, area, price range and amenities."],
+                ["📸", "View Photos", "Browse real photos before you visit in person."],
+                ["📍", "See Location", "Check exact map location and distance from you."],
+                ["⚡", "Book Instantly", "Send a booking request and get approved fast."],
+              ].map(([icon, title, desc]) => `
+              <tr>
+                <td style="padding:0 0 14px;">
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:40px;vertical-align:top;padding-top:2px;">
+                        <div style="width:36px;height:36px;background:#f0fdf4;border-radius:8px;text-align:center;line-height:36px;font-size:18px;">${icon}</div>
+                      </td>
+                      <td style="padding-left:12px;vertical-align:top;">
+                        <p style="margin:0;font-size:14px;font-weight:700;color:#111827;">${title}</p>
+                        <p style="margin:2px 0 0;font-size:13px;color:#6b7280;">${desc}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>`).join("")}
+            </table>
+
+            <!-- CTA button -->
+            <div style="text-align:center;margin:28px 0 8px;">
+              <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/dashboard"
+                 style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#16a34a,#059669);color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:0.2px;">
+                Start Exploring PGs →
+              </a>
+            </div>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:13px;color:#9ca3af;">
+              This is an automated message from BedWale.in. Please do not reply.
+            </p>
+            <p style="margin:0;font-size:13px;color:#9ca3af;">
+              Need help? Contact us at
+              <a href="mailto:support@sthals.in" style="color:#16a34a;text-decoration:none;">support@sthals.in</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+  } catch (error) {
+    console.error("Error sending user welcome email:", error);
+    throw new Error("Failed to send user welcome email");
+  }
+};
+
 // Function to send verification email (optional enhancement)
 // Function to send booking notification email to admin
 export const sendBookingNotificationEmail = async (

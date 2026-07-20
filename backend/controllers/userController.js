@@ -1,6 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
+import { sendUserWelcomeEmail } from "../utils/emailService.js";
 
 /**
  * @desc    Auth user & get token
@@ -59,6 +60,11 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (user) {
     const token = generateToken(res, user._id, "user");
+
+    // Fire-and-forget — user-specific welcome email
+    sendUserWelcomeEmail(user.email, user.firstName, user.lastName).catch((err) =>
+      console.error("User welcome email failed:", err.message),
+    );
 
     res.status(201).json({
       _id: user._id,
