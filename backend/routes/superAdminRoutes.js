@@ -4,24 +4,32 @@ import {
   getAdminsList,
   getPGsList,
   getLocationStats,
+  getUsersList,
+  getBookingsList,
 } from "../controllers/superAdminController.js";
-// import { superAdmin } from "../middleware/authMiddleware.js";
+// import { protectAdmin, superAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // All routes are protected and require super admin role
-// router.use(superAdmin);
+// router.use(protectAdmin, superAdmin);
 
-// Dashboard statistics
+// Platform KPI stats
 router.get("/dashboard", getDashboardStats);
 
-// Admins list
+// PG owners — supports ?page=&limit=&search=
 router.get("/admins", getAdminsList);
 
-// PGs list with statistics
+// PGs with occupancy — supports ?page=&limit=&search=
 router.get("/pgs", getPGsList);
 
-// Location-based statistics
+// Location aggregation — supports ?search=
 router.get("/location-stats", getLocationStats);
+
+// Registered users — supports ?page=&limit=&search=
+router.get("/users", getUsersList);
+
+// Bookings list + summary stats — supports ?page=&limit=&search=&status=
+router.get("/bookings", getBookingsList);
 
 export default router;

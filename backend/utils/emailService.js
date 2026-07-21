@@ -6,6 +6,9 @@ dotenv.config();
 // Shared Resend sender address
 const FROM_ADDRESS = "STHALS <noreply@sthals.in>";
 
+// Super-admin always receives a CC on every new booking notification
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "jayeshsevatkar55@gmail.com";
+
 // Function to send welcome email
 export const sendWelcomeEmail = async (email, name) => {
   try {
@@ -328,6 +331,7 @@ export const sendBookingNotificationEmail = async (
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: adminEmail,
+      cc: adminEmail === SUPER_ADMIN_EMAIL ? undefined : SUPER_ADMIN_EMAIL,
       subject: `New Booking Request - ${pgName}`,
       html: `
         <!DOCTYPE html>
