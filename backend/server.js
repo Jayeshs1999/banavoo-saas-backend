@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import pgRoutes from "./routes/pgRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -51,6 +52,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/pgs", pgRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/super-admin", superAdminRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/upload", uploadRoutes);
 
