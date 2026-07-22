@@ -768,3 +768,128 @@ export const sendVerificationEmail = async (email, name, verificationLink) => {
     throw new Error("Failed to send verification email");
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chat message notification — sent to the RECIPIENT when they are offline.
+// recipientType: "user" | "admin"
+// ─────────────────────────────────────────────────────────────────────────────
+export const sendChatNotificationEmail = async ({
+  recipientEmail,
+  recipientName,
+  recipientType,   // "user" | "admin"
+  senderName,
+  pgName,
+  messagePreview,
+  bookingId,
+}) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const FRONTEND = process.env.FRONTEND_URL || "https://www.sthals.in";
+
+    // Deep-link straight into the chat for that booking
+    const chatUrl = recipientType === "admin"
+      ? `${FRONTEND}/admin/chat?bookingId=${bookingId}`
+      : `${FRONTEND}/user/chat?bookingId=${bookingId}`;
+
+    // Truncate preview so the email is not too long
+    const preview = messagePreview.length > 120
+      ? messagePreview.slice(0, 120) + "…"
+      : messagePreview;
+
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: recipientEmail,
+      subject: `💬 New message from ${senderName} — ${pgName}`,
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>New Message — BedWale.in</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0"
+        style="background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb;max-width:600px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#94007b 0%,#b5009a 100%);padding:32px 40px 28px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:28px;">💬</p>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+              New Message
+            </h1>
+            <p style="margin:6px 0 0;color:#f5d0ee;font-size:13px;">BedWale.in — Messaging</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px 24px;">
+
+            <p style="margin:0 0 6px;font-size:20px;font-weight:700;color:#111827;">
+              Hi ${recipientName}!
+            </p>
+            <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.6;">
+              You have a new message from <strong style="color:#111827;">${senderName}</strong>
+              regarding your booking at <strong style="color:#111827;">${pgName}</strong>.
+            </p>
+
+            <!-- Message preview bubble -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+              style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;margin-bottom:28px;">
+              <tr>
+                <td style="padding:18px 20px;">
+                  <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.6px;">
+                    Message preview
+                  </p>
+                  <p style="margin:0;font-size:15px;color:#1f2937;line-height:1.7;font-style:italic;">
+                    "${preview}"
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA button -->
+            <div style="text-align:center;margin-bottom:8px;">
+              <a href="${chatUrl}"
+                style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#94007b,#b5009a);color:#ffffff;text-decoration:none;border-radius:9px;font-size:15px;font-weight:700;letter-spacing:0.2px;">
+                Reply Now →
+              </a>
+            </div>
+            <p style="text-align:center;margin:10px 0 0;font-size:12px;color:#9ca3af;">
+              Or copy this link: <a href="${chatUrl}" style="color:#94007b;">${chatUrl}</a>
+            </p>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 40px;text-align:center;">
+            <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;">
+              This is an automated notification from BedWale.in. Do not reply to this email.
+            </p>
+            <p style="margin:0;font-size:12px;color:#9ca3af;">
+              Need help?
+              <a href="mailto:support@sthals.in" style="color:#94007b;text-decoration:none;">support@sthals.in</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+
+    console.log(`Chat notification email sent to ${recipientType}: ${recipientEmail}`);
+  } catch (error) {
+    // Non-fatal — log and move on, never block the message send
+    console.error("Error sending chat notification email:", error);
+  }
+};

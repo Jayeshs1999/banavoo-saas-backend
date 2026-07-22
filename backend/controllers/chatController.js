@@ -2,6 +2,8 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Message from "../models/messageModel.js";
 import Booking from "../models/bookingModel.js";
 import PG from "../models/pgModel.js";
+import Admin from "../models/adminModel.js";
+import { sendChatNotificationEmail } from "../utils/emailService.js";
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -99,12 +101,66 @@ const sendMessage = asyncHandler(async (req, res) => {
 
   const senderId = senderType === "user" ? req.user._id : req.admin._id;
 
+  // ── Check BEFORE saving: are there already unread messages from this sender?
+  // If yes → recipient was already emailed and hasn't replied yet → skip email.
+  // Email fires ONLY on the 0 → 1 unread transition (first unread message).
+  const existingUnread = await Message.countDocuments({
+    bookingId:  booking._id,
+    senderType, // messages from the same side as the current sender
+    readAt:     null,
+  });
+  const shouldEmail = existingUnread === 0; // true only when inbox was empty
+
   const message = await Message.create({
     bookingId: booking._id,
     senderId,
     senderType,
     text: text.trim(),
   });
+
+  // ── Fire email to RECIPIENT — non-blocking, only on first unread ──────────
+  if (shouldEmail) {
+    (async () => {
+      try {
+        const pgName = booking.pgId?.name ?? "your PG";
+
+        if (senderType === "user") {
+          // User sent → notify the admin
+          const admin = await Admin.findById(booking.pgId.adminId).select("email ownerName");
+          if (admin?.email) {
+            const userName = `${booking.userId?.firstName ?? ""} ${booking.userId?.lastName ?? ""}`.trim() || "A tenant";
+            await sendChatNotificationEmail({
+              recipientEmail: admin.email,
+              recipientName:  admin.ownerName || "Admin",
+              recipientType:  "admin",
+              senderName:     userName,
+              pgName,
+              messagePreview: text.trim(),
+              bookingId:      booking._id.toString(),
+            });
+          }
+        } else {
+          // Admin sent → notify the user
+          const userEmail = booking.userId?.email;
+          const userName  = `${booking.userId?.firstName ?? ""} ${booking.userId?.lastName ?? ""}`.trim() || "Tenant";
+          if (userEmail) {
+            await sendChatNotificationEmail({
+              recipientEmail: userEmail,
+              recipientName:  userName,
+              recipientType:  "user",
+              senderName:     req.admin.ownerName || "PG Owner",
+              pgName,
+              messagePreview: text.trim(),
+              bookingId:      booking._id.toString(),
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Chat email notification error:", e);
+      }
+    })();
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   res.status(201).json({ success: true, data: message });
 });
