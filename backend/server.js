@@ -39,6 +39,7 @@ app.use(
       "http://192.168.0.147:3000",
       "https://dormitory-alpha.vercel.app",
       "https://www.sthals.in",
+      "https://www.bedwale.in"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
