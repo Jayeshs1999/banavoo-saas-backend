@@ -1,7 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/adminModel.js";
 import generateToken from "../utils/generateToken.js";
-import { sendWelcomeEmail } from "../utils/emailService.js";
+import { sendWelcomeEmail, sendEmailVerificationOtp, sendPasswordResetOtpEmail } from "../utils/emailService.js";
 import twilio from "twilio";
 import dotenv from "dotenv";
 
@@ -237,18 +237,17 @@ const sendEmailOtp = asyncHandler(async (req, res) => {
 
   const admin = await Admin.findOne({ email });
 
-  if (admin) {
-    const otp = admin.generateVerificationToken();
-    await admin.save();
-
-    // In real implementation, send OTP via email service
-    console.log(`Email OTP for ${email}: ${otp}`);
-
-    res.json({ message: "OTP sent successfully" });
-  } else {
+  if (!admin) {
     res.status(404);
     throw new Error("Admin not found with this email");
   }
+
+  const otp = admin.generateVerificationToken(); // sets verificationTokenExpires
+  await admin.save();
+
+  await sendEmailVerificationOtp(email, admin.ownerName, otp);
+
+  res.json({ message: "OTP sent successfully" });
 });
 
 // @desc    Verify email OTP
@@ -279,43 +278,42 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const admin = await Admin.findOne({ email });
 
-  if (admin) {
-    const resetToken = admin.generatePasswordResetToken();
-    await admin.save();
-
-    // In real implementation, send reset token via email
-    console.log(`Password reset token for ${email}: ${resetToken}`);
-
-    res.json({ message: "Password reset token sent to your email" });
-  } else {
+  if (!admin) {
     res.status(404);
-    throw new Error("Admin not found with this email");
+    throw new Error("No account found with this email address");
   }
+
+  const otp = admin.generatePasswordResetToken();
+  await admin.save();
+
+  await sendPasswordResetOtpEmail(email, admin.ownerName, otp);
+
+  res.json({ message: "Password reset code sent to your email" });
 });
 
 // @desc    Reset password
 // @route   POST /api/admins/reset-password
 // @access  Public
 const resetPassword = asyncHandler(async (req, res) => {
-  const { email, token, newPassword } = req.body;
+  const { email, otp, newPassword } = req.body;
 
   const admin = await Admin.findOne({
     email,
-    passwordResetToken: token,
+    passwordResetToken: otp,
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  if (admin) {
-    admin.password = newPassword;
-    admin.passwordResetToken = undefined;
-    admin.passwordResetExpires = undefined;
-    await admin.save();
-
-    res.json({ message: "Password reset successful" });
-  } else {
+  if (!admin) {
     res.status(400);
-    throw new Error("Invalid or expired reset token");
+    throw new Error("Invalid or expired reset code. Please request a new one.");
   }
+
+  admin.password = newPassword;
+  admin.passwordResetToken = undefined;
+  admin.passwordResetExpires = undefined;
+  await admin.save();
+
+  res.json({ message: "Password reset successful" });
 });
 
 export {

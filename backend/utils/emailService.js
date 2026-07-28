@@ -893,3 +893,199 @@ export const sendChatNotificationEmail = async ({
     console.error("Error sending chat notification email:", error);
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email Verification OTP — sent during registration so the user/admin can
+// verify their email address
+// ─────────────────────────────────────────────────────────────────────────────
+export const sendEmailVerificationOtp = async (email, name, otp) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: email,
+      subject: `${otp} is your BedWale.in verification code`,
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Email Verification — BedWale.in</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0"
+        style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;max-width:560px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#94007b 0%,#b5009a 100%);padding:32px 40px 28px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:30px;">✉️</p>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+              Verify your email
+            </h1>
+            <p style="margin:6px 0 0;color:#f5d0ee;font-size:13px;">BedWale.in — Account Security</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 40px 28px;">
+            <p style="margin:0 0 6px;font-size:18px;font-weight:700;color:#111827;">Hi ${name}! 👋</p>
+            <p style="margin:0 0 28px;font-size:14px;color:#6b7280;line-height:1.65;">
+              Thanks for signing up to BedWale.in. Use the code below to verify your email address.
+              This code is valid for <strong style="color:#111827;">10 minutes</strong>.
+            </p>
+
+            <!-- OTP box -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <tr>
+                <td align="center">
+                  <div style="display:inline-block;background:#fdf4ff;border:2px dashed #94007b;border-radius:14px;padding:20px 40px;text-align:center;">
+                    <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#94007b;letter-spacing:.12em;text-transform:uppercase;">
+                      Your verification code
+                    </p>
+                    <p style="margin:0;font-size:40px;font-weight:900;letter-spacing:10px;color:#94007b;line-height:1.1;font-family:'Courier New',monospace;">
+                      ${otp}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+              <p style="margin:0;font-size:13px;color:#92400e;">
+                ⚠️ <strong>Never share this code</strong> with anyone.
+                BedWale.in staff will never ask for your OTP.
+              </p>
+            </div>
+
+            <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
+              If you did not create an account on BedWale.in, you can safely ignore this email.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;">
+              © ${new Date().getFullYear()} BedWale.in · All rights reserved
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    });
+    console.log("Email verification OTP sent to:", email);
+  } catch (error) {
+    console.error("Error sending email verification OTP:", error);
+    throw new Error("Failed to send verification email");
+  }
+};
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Password Reset OTP — sent when user/admin requests a password reset
+// ─────────────────────────────────────────────────────────────────────────────
+export const sendPasswordResetOtpEmail = async (email, name, otp) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: email,
+      subject: `${otp} — your BedWale.in password reset code`,
+      html: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Reset Your Password — BedWale.in</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0"
+        style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;max-width:560px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#94007b 0%,#b5009a 100%);padding:32px 40px 28px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:30px;">🔐</p>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+              Reset your password
+            </h1>
+            <p style="margin:6px 0 0;color:#f5d0ee;font-size:13px;">BedWale.in — Account Security</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 40px 28px;">
+            <p style="margin:0 0 6px;font-size:18px;font-weight:700;color:#111827;">Hi ${name}! 👋</p>
+            <p style="margin:0 0 28px;font-size:14px;color:#6b7280;line-height:1.65;">
+              We received a request to reset your BedWale.in password.
+              Use the code below to reset it. This code is valid for
+              <strong style="color:#111827;">10 minutes</strong>.
+            </p>
+
+            <!-- OTP box -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+              <tr>
+                <td align="center">
+                  <div style="display:inline-block;background:#fdf4ff;border:2px dashed #94007b;border-radius:14px;padding:20px 40px;text-align:center;">
+                    <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#94007b;letter-spacing:.12em;text-transform:uppercase;">
+                      Password reset code
+                    </p>
+                    <p style="margin:0;font-size:40px;font-weight:900;letter-spacing:10px;color:#94007b;line-height:1.1;font-family:'Courier New',monospace;">
+                      ${otp}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+              <p style="margin:0;font-size:13px;color:#991b1b;">
+                🚫 <strong>Did not request this?</strong> Ignore this email — your password will remain unchanged.
+                Someone may have entered your email by mistake.
+              </p>
+            </div>
+
+            <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;">
+              <p style="margin:0;font-size:13px;color:#92400e;">
+                ⚠️ <strong>Never share this code</strong> with anyone.
+                BedWale.in staff will never ask for your reset code.
+              </p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;">
+              © ${new Date().getFullYear()} BedWale.in · All rights reserved
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    });
+    console.log("Password reset OTP sent to:", email);
+  } catch (error) {
+    console.error("Error sending password reset OTP:", error);
+    throw new Error("Failed to send password reset email");
+  }
+};

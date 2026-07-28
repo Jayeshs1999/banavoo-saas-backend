@@ -85,11 +85,11 @@ userSchema.methods.generateVerificationToken = function () {
   return token;
 };
 
-// Instance method to generate password reset token
+// Instance method to generate password reset OTP (6-digit numeric)
 userSchema.methods.generatePasswordResetToken = function () {
-  const resetToken = Math.random().toString(36).substr(2, 8);
+  const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
   this.passwordResetToken = resetToken;
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
   return resetToken;
 };
 

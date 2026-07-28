@@ -1,7 +1,7 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
-import { sendUserWelcomeEmail } from "../utils/emailService.js";
+import { sendUserWelcomeEmail, sendPasswordResetOtpEmail } from "../utils/emailService.js";
 
 /**
  * @desc    Auth user & get token
@@ -158,10 +158,58 @@ const logoutUser = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+// @desc    Forgot password — send OTP to registered email
+// @route   POST /api/users/forgot-password
+// @access  Public
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(404);
+    throw new Error("No account found with this email address");
+  }
+
+  const otp = user.generatePasswordResetToken();
+  await user.save();
+
+  await sendPasswordResetOtpEmail(email, user.firstName, otp);
+
+  res.json({ message: "Password reset code sent to your email" });
+});
+
+// @desc    Reset password using OTP
+// @route   POST /api/users/reset-password
+// @access  Public
+const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  const user = await User.findOne({
+    email,
+    passwordResetToken: otp,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error("Invalid or expired reset code. Please request a new one.");
+  }
+
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  res.json({ message: "Password reset successful" });
+});
+
 export {
   authUser,
   registerUser,
   getUserProfile,
   updateUserProfile,
   logoutUser,
+  forgotPassword,
+  resetPassword,
 };
