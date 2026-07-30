@@ -7,6 +7,10 @@ import {
   logoutUser,
   forgotPassword,
   resetPassword,
+  sendEmailOtp,
+  verifyEmailOtp,
+  sendPreRegOtp,
+  verifyPreRegOtp,
 } from "../controllers/userController.js";
 import { protectUser } from "../middleware/authMiddleware.js";
 
@@ -151,5 +155,9 @@ router.put("/profile", protectUser, updateUserProfile);
 router.post("/logout", logoutUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/send-email-otp", sendEmailOtp);
+router.post("/verify-email-otp", verifyEmailOtp);
+router.post("/send-prereg-otp", sendPreRegOtp);
+router.post("/verify-prereg-otp", verifyPreRegOtp);
 
 export default router;

@@ -10,6 +10,8 @@ import {
   verifyEmailOtp,
   sendMobileOtp,
   sendEmailOtp,
+  sendPreRegOtp,
+  verifyPreRegOtp,
 } from "../controllers/adminController.js";
 import { protectAdmin } from "../middleware/authMiddleware.js";
 
@@ -163,6 +165,8 @@ router.post("/forgot-password", forgotPassword);
  *         description: Invalid or expired token
  */
 router.post("/reset-password", resetPassword);
+router.post("/send-prereg-otp", sendPreRegOtp);
+router.post("/verify-prereg-otp", verifyPreRegOtp);
 
 /**
  * @swagger

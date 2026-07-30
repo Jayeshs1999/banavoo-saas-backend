@@ -2,6 +2,7 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import Admin from "../models/adminModel.js";
 import generateToken from "../utils/generateToken.js";
 import { sendWelcomeEmail, sendEmailVerificationOtp, sendPasswordResetOtpEmail } from "../utils/emailService.js";
+import { setPreRegOtp, verifyPreRegOtp as checkPreRegOtp, generateOtp } from "../utils/otpStore.js";
 import twilio from "twilio";
 import dotenv from "dotenv";
 
@@ -316,6 +317,36 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.json({ message: "Password reset successful" });
 });
 
+// @desc    Send pre-registration email OTP (no account required)
+// @route   POST /api/admins/send-prereg-otp
+// @access  Public
+const sendPreRegOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) { res.status(400); throw new Error("Email is required"); }
+
+  // Block if email already registered
+  const exists = await Admin.findOne({ email: email.toLowerCase() });
+  if (exists) { res.status(400); throw new Error("An account with this email already exists"); }
+
+  const otp = generateOtp();
+  setPreRegOtp(email, otp);
+  await sendEmailVerificationOtp(email, "there", otp);
+  res.json({ message: "OTP sent to your email" });
+});
+
+// @desc    Verify pre-registration email OTP
+// @route   POST /api/admins/verify-prereg-otp
+// @access  Public
+const verifyPreRegOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) { res.status(400); throw new Error("Email and OTP are required"); }
+
+  const valid = checkPreRegOtp(email, otp);
+  if (!valid) { res.status(400); throw new Error("Invalid or expired OTP"); }
+
+  res.json({ message: "Email verified", verified: true });
+});
+
 export {
   authAdmin,
   registerAdmin,
@@ -326,6 +357,8 @@ export {
   verifyMobileOtp,
   sendEmailOtp,
   verifyEmailOtp,
+  sendPreRegOtp,
+  verifyPreRegOtp,
   forgotPassword,
   resetPassword,
 };
