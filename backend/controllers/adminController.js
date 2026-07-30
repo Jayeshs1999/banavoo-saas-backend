@@ -177,7 +177,7 @@ const sendMobileOtp = asyncHandler(async (req, res) => {
       try {
         // Send OTP via Twilio
         const message = await client.messages.create({
-          body: `Your OTP for STHALS.IN verification is: ${otp}. This OTP is valid for 10 minutes.`,
+          body: `Your OTP for Bedwale.in verification is: ${otp}. This OTP is valid for 10 minutes.`,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: mobile,
         });

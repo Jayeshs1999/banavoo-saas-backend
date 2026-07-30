@@ -157,7 +157,7 @@ The server is configured to accept uploads from:
 
 - http://localhost:3000
 - https://dormitory-alpha.vercel.app
-- https://www.sthals.in
+- https://www.bedwale.in
 
 ## Testing
 

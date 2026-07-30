@@ -9,6 +9,7 @@ import {
   updateBookingStatus,
   createPaymentOrder,
   verifyPayment,
+  rescheduleBooking,
 } from "../controllers/bookingController.js";
 import { protectUser, protectAdmin } from "../middleware/authMiddleware.js";
 
@@ -177,6 +178,7 @@ router.get("/:id", protectUser, getBooking);
  *         description: Booking not found
  */
 router.put("/:id/cancel", protectUser, cancelBooking);
+router.put("/:id/reschedule", protectUser, rescheduleBooking);
 
 /**
  * @swagger
