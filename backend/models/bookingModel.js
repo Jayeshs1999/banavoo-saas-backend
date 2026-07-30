@@ -24,8 +24,10 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Join date is required"],
       validate: {
+        // Only enforce "not in the past" when first creating the booking,
+        // not on subsequent saves (status updates, cancellations, reschedules).
         validator: function (date) {
-          return date >= new Date();
+          return !this.isNew || date >= new Date();
         },
         message: "Join date cannot be in the past",
       },

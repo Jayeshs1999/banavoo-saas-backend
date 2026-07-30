@@ -4,7 +4,7 @@ import { Resend } from "resend";
 dotenv.config();
 
 // Shared Resend sender address
-const FROM_ADDRESS = "STHALS <noreply@sthals.in>";
+const FROM_ADDRESS = "BEDWALE <noreply@bedwale.in>";
 
 // Super-admin always receives a CC on every new booking notification
 const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "jayeshsevatkar55@gmail.com";
@@ -15,9 +15,9 @@ export const sendWelcomeEmail = async (email, name) => {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: "STHALS <noreply@sthals.in>",
+      from: "BEDWALE <noreply@bedwale.in>",
       to: email,
-      subject: "Welcome to STHALS.IN - Your PG Registration is Complete!",
+      subject: "Welcome to BEDWALE.IN - Your PG Registration is Complete!",
 
       html: `
         <!DOCTYPE html>
@@ -25,7 +25,7 @@ export const sendWelcomeEmail = async (email, name) => {
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to STHALS.IN</title>
+            <title>Welcome to BEDWALE.IN</title>
             <style>
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -91,7 +91,7 @@ export const sendWelcomeEmail = async (email, name) => {
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #3498db;">Welcome Aboard! 🎉</h1>
                 </div>
                 
@@ -100,7 +100,7 @@ export const sendWelcomeEmail = async (email, name) => {
                 </div>
                 
                 <div class="content">
-                    <p>We're thrilled to welcome you to STHALS.IN! Your registration as a PG owner has been successfully completed.</p>
+                    <p>We're thrilled to welcome you to BEDWALE.IN! Your registration as a PG owner has been successfully completed.</p>
                     
                     <div class="highlight">
                         <strong>Your Account Details:</strong><br>
@@ -127,16 +127,16 @@ export const sendWelcomeEmail = async (email, name) => {
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}" class="btn">Visit Your Dashboard</a>
+                    <a href="${process.env.FRONTEND_URL || "https://www.bedwale.in"}" class="btn">Visit Your Dashboard</a>
                 </div>
                 
                 <div class="footer">
                     <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
                     <p>Best regards,<br>
-                    The STHALS.IN Team</p>
+                    The BEDWALE.IN Team</p>
                     
                     <div class="small-text">
-                        <p>This is an automated message from STHALS.IN. Please do not reply to this email.</p>
+                        <p>This is an automated message from BEDWALE.IN. Please do not reply to this email.</p>
                         <p>If you received this email by mistake, please ignore it or contact our support team.</p>
                     </div>
                 </div>
@@ -282,7 +282,7 @@ export const sendUserWelcomeEmail = async (email, firstName, lastName) => {
 
             <!-- CTA button -->
             <div style="text-align:center;margin:28px 0 8px;">
-              <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/dashboard"
+              <a href="${process.env.FRONTEND_URL || "https://www.bedwale.in"}/user/dashboard"
                  style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#16a34a,#059669);color:#ffffff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:0.2px;">
                 Start Exploring PGs →
               </a>
@@ -299,7 +299,7 @@ export const sendUserWelcomeEmail = async (email, firstName, lastName) => {
             </p>
             <p style="margin:0;font-size:13px;color:#9ca3af;">
               Need help? Contact us at
-              <a href="mailto:support@sthals.in" style="color:#16a34a;text-decoration:none;">support@sthals.in</a>
+              <a href="mailto:support@bedwale.in" style="color:#16a34a;text-decoration:none;">support@bedwale.in</a>
             </p>
           </td>
         </tr>
@@ -355,7 +355,7 @@ export const sendBookingNotificationEmail = async (
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #ffc107;">🏠 New Booking Request!</h1>
                 </div>
                 
@@ -376,13 +376,13 @@ export const sendBookingNotificationEmail = async (
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/admin/requests" class="btn">View & Manage Request</a>
+                    <a href="${process.env.FRONTEND_URL || "https://www.bedwale.in"}/admin/requests" class="btn">View & Manage Request</a>
                 </div>
                 
                 <p>Please log in to your admin dashboard to approve or reject this booking request.</p>
                 
                 <div class="footer">
-                    <p>Best regards,<br>The STHALS.IN Team</p>
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
                 </div>
             </div>
         </body>
@@ -430,7 +430,7 @@ export const sendBookingConfirmationToUser = async (
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #28a745;">✅ Booking Request Submitted!</h1>
                 </div>
                 
@@ -459,7 +459,7 @@ export const sendBookingConfirmationToUser = async (
                 <p>You can view your booking status anytime by logging into your account and visiting the "My Requests" page.</p>
                 
                 <div class="footer">
-                    <p>Best regards,<br>The STHALS.IN Team</p>
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
                 </div>
             </div>
         </body>
@@ -506,7 +506,7 @@ export const sendBookingCancellationEmail = async (
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #dc3545;">❌ Booking Cancelled</h1>
                 </div>
                 
@@ -526,7 +526,7 @@ export const sendBookingCancellationEmail = async (
                 <p>The room/bed is now available again. You may want to update your availability.</p>
                 
                 <div class="footer">
-                    <p>Best regards,<br>The STHALS.IN Team</p>
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
                 </div>
             </div>
         </body>
@@ -575,7 +575,7 @@ export const sendBookingApprovalEmail = async (
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #28a745;">🎉 Booking Approved!</h1>
                 </div>
                 
@@ -602,7 +602,7 @@ export const sendBookingApprovalEmail = async (
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/requests" class="btn">View My Bookings</a>
+                    <a href="${process.env.FRONTEND_URL || "https://www.bedwale.in"}/user/requests" class="btn">View My Bookings</a>
                 </div>
                 
                 <p><strong>Next Steps:</strong></p>
@@ -613,7 +613,7 @@ export const sendBookingApprovalEmail = async (
                 </ul>
                 
                 <div class="footer">
-                    <p>Best regards,<br>The STHALS.IN Team</p>
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
                 </div>
             </div>
         </body>
@@ -661,7 +661,7 @@ export const sendBookingRejectionEmail = async (
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #dc3545;">Booking Request Update</h1>
                 </div>
                 
@@ -690,13 +690,13 @@ export const sendBookingRejectionEmail = async (
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="${process.env.FRONTEND_URL || "https://www.sthals.in"}/user/dashboard" class="btn">Browse Available PGs</a>
+                    <a href="${process.env.FRONTEND_URL || "https://www.bedwale.in"}/user/dashboard" class="btn">Browse Available PGs</a>
                 </div>
                 
                 <p>If you have any questions or need assistance finding alternative accommodation, please don't hesitate to contact our support team.</p>
                 
                 <div class="footer">
-                    <p>Best regards,<br>The STHALS.IN Team</p>
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
                 </div>
             </div>
         </body>
@@ -716,7 +716,7 @@ export const sendVerificationEmail = async (email, name, verificationLink) => {
     const result = await resend.emails.send({
       from: FROM_ADDRESS,
       to: email,
-      subject: "Verify Your Email Address - STHALS.IN",
+      subject: "Verify Your Email Address - BEDWALE.IN",
       html: `
         <!DOCTYPE html>
         <html>
@@ -735,13 +735,13 @@ export const sendVerificationEmail = async (email, name, verificationLink) => {
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">STHALS.IN</div>
+                    <div class="logo">BEDWALE.IN</div>
                     <h1 style="color: #27ae60;">Please Verify Your Email</h1>
                 </div>
                 
                 <p>Hello ${name},</p>
                 
-                <p>Thank you for registering with STHALS.IN! To complete your registration, please verify your email address by clicking the button below:</p>
+                <p>Thank you for registering with BEDWALE.IN! To complete your registration, please verify your email address by clicking the button below:</p>
                 
                 <div style="text-align: center;">
                     <a href="${verificationLink}" class="btn">Verify Email Address</a>
@@ -752,10 +752,10 @@ export const sendVerificationEmail = async (email, name, verificationLink) => {
                 
                 <p>This verification link will expire in 24 hours for security reasons.</p>
                 
-                <p>If you didn't register for STHALS.IN, please ignore this email.</p>
+                <p>If you didn't register for BEDWALE.IN, please ignore this email.</p>
                 
                 <p>Best regards,<br>
-                The STHALS.IN Team</p>
+                The BEDWALE.IN Team</p>
             </div>
         </body>
         </html>
@@ -784,7 +784,7 @@ export const sendChatNotificationEmail = async ({
 }) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const FRONTEND = process.env.FRONTEND_URL || "https://www.sthals.in";
+    const FRONTEND = process.env.FRONTEND_URL || "https://www.bedwale.in";
 
     // Deep-link straight into the chat for that booking
     const chatUrl = recipientType === "admin"
@@ -874,7 +874,7 @@ export const sendChatNotificationEmail = async ({
             </p>
             <p style="margin:0;font-size:12px;color:#9ca3af;">
               Need help?
-              <a href="mailto:support@sthals.in" style="color:#94007b;text-decoration:none;">support@sthals.in</a>
+              <a href="mailto:support@bedwale.in" style="color:#94007b;text-decoration:none;">support@bedwale.in</a>
             </p>
           </td>
         </tr>
@@ -1087,5 +1087,216 @@ export const sendPasswordResetOtpEmail = async (email, name, otp) => {
   } catch (error) {
     console.error("Error sending password reset OTP:", error);
     throw new Error("Failed to send password reset email");
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Booking Rescheduled — sent to user (confirmation) + admin (alert)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sent to the USER after they reschedule a pending booking.
+ * bookingDetails: { pgName, roomName, bedNumber, oldJoinDate, newJoinDate, stayDays, totalPrice, paymentMethod }
+ */
+export const sendBookingRescheduledToUser = async (
+  userEmail,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: userEmail,
+      subject: `Booking Rescheduled — ${bookingDetails.pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Rescheduled</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .highlight { background-color: #e8f5e9; padding: 10px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
+                .old-date { color: #999; text-decoration: line-through; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">BEDWALE.IN</div>
+                    <h1 style="color: #2196f3;">📅 Booking Rescheduled</h1>
+                </div>
+                <div class="info">
+                    <strong>Hello ${userName}!</strong><br>
+                    Your booking has been rescheduled successfully. The PG admin has been notified and will review the updated request.
+                </div>
+                <div class="details">
+                    <h3>Updated Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    <p><strong>Previous Join Date:</strong> <span class="old-date">${new Date(bookingDetails.oldJoinDate).toLocaleDateString()}</span></p>
+                    <p><strong>New Join Date:</strong> ${new Date(bookingDetails.newJoinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                    <p><strong>Payment Method:</strong> ${bookingDetails.paymentMethod}</p>
+                </div>
+                <p>Your booking is still <strong>pending</strong>. The admin will approve or reject it shortly.</p>
+                <div class="footer">
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Booking rescheduled confirmation sent to user:", userEmail);
+  } catch (error) {
+    console.error("Error sending booking rescheduled email to user:", error);
+  }
+};
+
+/**
+ * Sent to the ADMIN when a tenant reschedules a pending booking.
+ * bookingDetails: { pgName, roomName, bedNumber, oldJoinDate, newJoinDate, stayDays, totalPrice, paymentMethod }
+ */
+export const sendBookingRescheduledToAdmin = async (
+  adminEmail,
+  pgName,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: adminEmail,
+      subject: `Booking Rescheduled by Tenant — ${pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Rescheduled</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .info { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .highlight { background-color: #e8f5e9; padding: 10px; border-radius: 4px; margin: 10px 0; font-weight: bold; }
+                .old-date { color: #999; text-decoration: line-through; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">BEDWALE.IN</div>
+                    <h1 style="color: #2196f3;">📅 Tenant Rescheduled a Booking</h1>
+                </div>
+                <div class="info">
+                    <strong>${userName}</strong> has rescheduled their booking for <strong>${pgName}</strong>. Please review and approve or reject the updated request.
+                </div>
+                <div class="details">
+                    <h3>Updated Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <p><strong>Tenant:</strong> ${userName}</p>
+                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    <p><strong>Previous Join Date:</strong> <span class="old-date">${new Date(bookingDetails.oldJoinDate).toLocaleDateString()}</span></p>
+                    <p><strong>New Join Date:</strong> ${new Date(bookingDetails.newJoinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                    <p><strong>Payment Method:</strong> ${bookingDetails.paymentMethod}</p>
+                </div>
+                <p>Log in to your admin panel to approve or reject this booking.</p>
+                <div class="footer">
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Booking rescheduled alert sent to admin:", adminEmail);
+  } catch (error) {
+    console.error("Error sending booking rescheduled email to admin:", error);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Booking Cancellation Confirmation — sent to USER when they cancel
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sent to the USER to confirm their own cancellation.
+ * bookingDetails: { pgName, joinDate, stayDays, totalPrice }
+ */
+export const sendBookingCancellationConfirmationToUser = async (
+  userEmail,
+  userName,
+  bookingDetails,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: userEmail,
+      subject: `Booking Cancelled — ${bookingDetails.pgName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Booking Cancelled</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .header { text-align: center; margin-bottom: 30px; }
+                .logo { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                .alert { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }
+                .details { background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">BEDWALE.IN</div>
+                    <h1 style="color: #dc3545;">❌ Booking Cancelled</h1>
+                </div>
+                <div class="alert">
+                    <strong>Hello ${userName},</strong><br>
+                    Your booking request has been cancelled successfully.
+                </div>
+                <div class="details">
+                    <h3>Cancelled Booking Details:</h3>
+                    <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
+                    <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
+                    <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
+                    <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
+                </div>
+                <p>If you'd like to book again, visit <a href="https://bedwale.in">bedwale.in</a> and search for available PGs.</p>
+                <div class="footer">
+                    <p>Best regards,<br>The BEDWALE.IN Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Booking cancellation confirmation sent to user:", userEmail);
+  } catch (error) {
+    console.error("Error sending cancellation confirmation to user:", error);
   }
 };

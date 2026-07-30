@@ -11,6 +11,9 @@ import {
   sendBookingConfirmationToUser,
   sendBookingApprovalEmail,
   sendBookingRejectionEmail,
+  sendBookingRescheduledToUser,
+  sendBookingRescheduledToAdmin,
+  sendBookingCancellationConfirmationToUser,
 } from "../utils/emailService.js";
 import {
   calculatePriceByPeriod,
@@ -302,16 +305,31 @@ const cancelBooking = asyncHandler(async (req, res) => {
   // Get admin email for notification
   const admin = await Admin.findById(pg.adminId).select("email pgName");
 
-  // Send cancellation email notification to admin
+  const userName = req.user.firstName
+    ? `${req.user.firstName} ${req.user.lastName || ""}`
+    : req.user.email;
+
+  // Notify admin about the cancellation
   if (admin && admin.email) {
-    const userName = req.user.firstName
-      ? `${req.user.firstName} ${req.user.lastName || ""}`
-      : req.user.email;
     sendBookingCancellationEmail(admin.email, pg.name, userName, {
       joinDate: booking.joinDate,
       stayDays: booking.stayDays,
       totalPrice: booking.totalPrice,
     });
+  }
+
+  // Confirm cancellation to the user
+  if (req.user.email) {
+    sendBookingCancellationConfirmationToUser(
+      req.user.email,
+      userName,
+      {
+        pgName: pg.name,
+        joinDate: booking.joinDate,
+        stayDays: booking.stayDays,
+        totalPrice: booking.totalPrice,
+      },
+    );
   }
 
   res.json({
@@ -711,6 +729,119 @@ const verifyPayment = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Reschedule a pending booking's join date (User only)
+ * @route   PUT /api/bookings/:id/reschedule
+ * @access  Private (User only)
+ */
+const rescheduleBooking = asyncHandler(async (req, res) => {
+  const { joinDate } = req.body;
+
+  if (!joinDate) {
+    return res.status(400).json({ success: false, message: "New join date is required" });
+  }
+
+  const newDate = new Date(joinDate);
+  if (isNaN(newDate.getTime()) || newDate < new Date()) {
+    return res.status(400).json({ success: false, message: "New join date must be a valid future date" });
+  }
+
+  const booking = await Booking.findById(req.params.id);
+
+  if (!booking) {
+    return res.status(404).json({ success: false, message: "Booking not found" });
+  }
+
+  if (booking.userId.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: "Not authorized to reschedule this booking" });
+  }
+
+  if (booking.status !== "pending") {
+    return res.status(400).json({
+      success: false,
+      message: "Only pending bookings can be rescheduled. Cancel this booking and create a new one.",
+    });
+  }
+
+  // Recalculate total price for the new dates
+  const checkOutDate = new Date(newDate);
+  checkOutDate.setDate(checkOutDate.getDate() + booking.stayDays);
+
+  const pg = await PG.findById(booking.pgId);
+  if (pg) {
+    const room = pg.structure?.find((r) => r._id.toString() === booking.roomId);
+    if (room) {
+      const bed = room.beds?.find((b) => b._id.toString() === booking.bedId);
+      if (bed) {
+        const { totalPrice } = calculatePriceByPeriod({
+          checkIn: newDate,
+          checkOut: checkOutDate,
+          price: bed.price,
+          pricingPeriod: room.pricingPeriod || "month",
+        });
+        booking.totalPrice = totalPrice;
+      }
+    }
+  }
+
+  const oldJoinDate = booking.joinDate;
+  booking.joinDate = newDate;
+  await booking.save();
+
+  const updatedBooking = await Booking.findById(booking._id)
+    .populate("pgId", "name location photos")
+    .populate("userId", "firstName lastName email mobile");
+
+  // Gather details for emails
+  const pgForEmail = pg || (await PG.findById(booking.pgId));
+  const admin = pgForEmail
+    ? await Admin.findById(pgForEmail.adminId).select("email ownerName mobile")
+    : null;
+
+  const room = pgForEmail?.structure?.find(
+    (r) => r._id.toString() === booking.roomId,
+  );
+  const roomName = room?.name || "Unknown";
+  const bedIndex =
+    (room?.beds?.findIndex((b) => b._id.toString() === booking.bedId) ?? -1) + 1;
+
+  const rescheduleDetails = {
+    pgName: pgForEmail?.name || "PG",
+    roomName,
+    bedNumber: bedIndex || "N/A",
+    oldJoinDate,
+    newJoinDate: newDate,
+    stayDays: booking.stayDays,
+    totalPrice: booking.totalPrice,
+    paymentMethod: booking.paymentMethod,
+  };
+
+  const userName = req.user.firstName
+    ? `${req.user.firstName} ${req.user.lastName || ""}`
+    : req.user.email;
+
+  // Confirm reschedule to the user
+  if (req.user.email) {
+    sendBookingRescheduledToUser(req.user.email, userName, rescheduleDetails);
+  }
+
+  // Alert the admin about the rescheduled booking
+  if (admin && admin.email) {
+    sendBookingRescheduledToAdmin(
+      admin.email,
+      pgForEmail.name,
+      userName,
+      rescheduleDetails,
+    );
+  }
+
+  res.json({
+    success: true,
+    message: "Booking rescheduled successfully",
+    data: updatedBooking,
+  });
+});
+
 export {
   createBooking,
   getMyBookings,
@@ -721,4 +852,5 @@ export {
   updateBookingStatus,
   createPaymentOrder,
   verifyPayment,
+  rescheduleBooking,
 };

@@ -43,7 +43,7 @@ const adminSchema = new mongoose.Schema(
 const Admin = mongoose.models.Admin || mongoose.model("Admin", adminSchema);
 
 const SUPER_ADMIN = {
-  pgName:    "STHALS Platform",
+  pgName:    "BEDWALE Platform",
   ownerName: "Jayesh Sevatkar",
   mobile:    "9999999999",
   email:     "superadmin@sthals.in",
