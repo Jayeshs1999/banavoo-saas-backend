@@ -1300,3 +1300,134 @@ export const sendBookingCancellationConfirmationToUser = async (
     console.error("Error sending cancellation confirmation to user:", error);
   }
 };
+
+/**
+ * Sent to SUPER-ADMIN when a new contact form message arrives.
+ * Also sends an auto-reply acknowledgement to the person who contacted us.
+ *
+ * @param {string} senderName   - Name from the contact form
+ * @param {string} senderEmail  - Email from the contact form
+ * @param {string} messageText  - Message body from the contact form
+ */
+export const sendContactNotificationEmail = async (
+  senderName,
+  senderEmail,
+  messageText,
+) => {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "jayeshsevatkar55@gmail.com";
+  const receivedAt = new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  /* ── 1. Notify the super-admin ── */
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: adminEmail,
+      reply_to: senderEmail,
+      subject: `📩 New Contact Message from ${senderName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Contact Message</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+            .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: bold; color: #94007b; letter-spacing: -0.5px; }
+            .badge { display: inline-block; background: #94007b; color: #fff; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-top: 8px; }
+            .meta { background-color: #f8f9fa; border-left: 4px solid #94007b; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; }
+            .meta p { margin: 4px 0; font-size: 14px; }
+            .message-box { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px 20px; margin: 20px 0; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+            .reply-note { font-size: 13px; color: #666; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 12px 16px; margin-top: 20px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 13px; color: #888; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">BEDWALE.IN</div>
+              <div class="badge">New Contact Message</div>
+            </div>
+            <p>You have received a new message through the contact form on <strong>bedwale.in</strong>.</p>
+            <div class="meta">
+              <p><strong>From:</strong> ${senderName}</p>
+              <p><strong>Email:</strong> <a href="mailto:${senderEmail}">${senderEmail}</a></p>
+              <p><strong>Received:</strong> ${receivedAt} (IST)</p>
+            </div>
+            <p><strong>Message:</strong></p>
+            <div class="message-box">${messageText}</div>
+            <div class="reply-note">
+              💡 To reply, simply hit <strong>Reply</strong> in your email client — it will go directly to <strong>${senderEmail}</strong>.
+            </div>
+            <div class="footer">
+              <p>BEDWALE.IN · Automated notification</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Contact notification sent to admin:", adminEmail);
+  } catch (err) {
+    console.error("Error sending contact notification to admin:", err);
+  }
+
+  /* ── 2. Auto-reply to the sender ── */
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: senderEmail,
+      subject: "We received your message — Bedwale.in",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>We got your message</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+            .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: bold; color: #94007b; }
+            .highlight { background: #fdf4ff; border-left: 4px solid #94007b; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; }
+            .message-box { background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px 20px; font-size: 14px; color: #555; white-space: pre-wrap; word-break: break-word; margin: 16px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 13px; color: #888; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">BEDWALE.IN</div>
+              <h2 style="color: #1f2328; margin-top: 8px;">Thanks for reaching out, ${senderName}!</h2>
+            </div>
+            <div class="highlight">
+              We've received your message and our team will get back to you within <strong>24 hours</strong>.
+            </div>
+            <p>Here's a copy of what you sent us:</p>
+            <div class="message-box">${messageText}</div>
+            <p>In the meantime, you can also reach us at:</p>
+            <p>📧 <a href="mailto:jayeshsevatkar55@gmail.com">jayeshsevatkar55@gmail.com</a><br>
+               📞 +91 8888585093<br>
+               🕐 Mon–Sun, 9 am – 9 pm IST</p>
+            <div class="footer">
+              <p>Best regards,<br><strong>The BEDWALE.IN Team</strong></p>
+              <p style="margin-top: 8px; font-size: 12px;">You're receiving this because you submitted a contact form at bedwale.in.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+    console.log("Contact auto-reply sent to:", senderEmail);
+  } catch (err) {
+    console.error("Error sending contact auto-reply:", err);
+  }
+};
