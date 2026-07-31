@@ -1,5 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Contact from "../models/contactModel.js";
+import { sendContactNotificationEmail } from "../utils/emailService.js";
 
 /**
  * @desc    Create new contact message
@@ -9,14 +10,14 @@ import Contact from "../models/contactModel.js";
 const createContactMessage = asyncHandler(async (req, res) => {
   const { name, email, message } = req.body;
 
-  // Create new contact message
-  const contact = new Contact({
-    name,
-    email,
-    message,
-  });
-
+  // Persist to DB
+  const contact = new Contact({ name, email, message });
   const createdContact = await contact.save();
+
+  // Fire-and-forget: notify admin + auto-reply to sender
+  sendContactNotificationEmail(name, email, message).catch((err) =>
+    console.error("Contact email error:", err),
+  );
 
   res.status(201).json({
     success: true,
