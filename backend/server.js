@@ -10,6 +10,7 @@ import superAdminRoutes from "./routes/superAdminRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpecs from "./swagger.js";
@@ -56,6 +57,7 @@ app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Swagger UI setup
 app.use(

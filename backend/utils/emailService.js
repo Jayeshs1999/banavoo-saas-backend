@@ -1431,3 +1431,78 @@ export const sendContactNotificationEmail = async (
     console.error("Error sending contact auto-reply:", err);
   }
 };
+
+export const sendReviewInviteEmail = async (
+  userEmail,
+  userName,
+  pgName,
+  reviewUrl,
+) => {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: userEmail,
+      subject: `Share Your Experience at ${pgName} — BEDWALE.IN`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Leave a Review</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+            .container { background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 24px; font-weight: bold; color: #94007b; letter-spacing: -0.5px; }
+            .stars { font-size: 32px; text-align: center; margin: 16px 0; }
+            .highlight { background: #fdf4ff; border-left: 4px solid #94007b; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; }
+            .btn { display: inline-block; padding: 14px 36px; background-color: #94007b; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; margin: 24px 0; }
+            .pg-name { font-size: 18px; font-weight: 700; color: #1f2328; }
+            .note { font-size: 12px; color: #888; margin-top: 16px; word-break: break-all; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 13px; color: #888; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">BEDWALE.IN</div>
+            </div>
+
+            <p>Hi <strong>${userName}</strong>,</p>
+            <p>Thank you for staying at <span class="pg-name">${pgName}</span>! We hope you had a wonderful experience.</p>
+
+            <div class="highlight">
+              Your feedback helps other tenants make better decisions — and takes less than a minute!
+            </div>
+
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+
+            <p style="text-align:center;">
+              <a href="${reviewUrl}" class="btn">Write My Review</a>
+            </p>
+
+            <p>The review link is unique to you and can only be used once. It does not expire.</p>
+
+            <div class="note">
+              If the button above doesn't work, copy and paste this URL into your browser:<br>
+              ${reviewUrl}
+            </div>
+
+            <div class="footer">
+              <p>Best regards,<br><strong>The BEDWALE.IN Team</strong></p>
+              <p style="margin-top:8px;font-size:12px;">You're receiving this email because you recently stayed at ${pgName} via bedwale.in.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    console.log("Review invite email sent to:", userEmail);
+  } catch (error) {
+    console.error("Error sending review invite email:", error);
+  }
+};
