@@ -11,6 +11,7 @@ import chatRoutes from "./routes/chatRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import galleryRoutes from "./routes/galleryRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpecs from "./swagger.js";
@@ -58,6 +59,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/gallery", galleryRoutes);
 
 // Swagger UI setup
 app.use(
