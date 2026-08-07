@@ -327,6 +327,12 @@ export const sendBookingNotificationEmail = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    // Support both multi-bed (bedsSummary) and legacy single-bed (roomName/bedNumber)
+    const bedLine = bookingDetails.bedsSummary
+      ? `<div class="highlight">🛏️ ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} Beds: ` : "Bed: "}${bookingDetails.bedsSummary}</div>`
+      : bookingDetails.roomName
+      ? `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>`
+      : "";
 
     await resend.emails.send({
       from: FROM_ADDRESS,
@@ -367,7 +373,7 @@ export const sendBookingNotificationEmail = async (
                     <h3>Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${pgName}</p>
                     <p><strong>Tenant:</strong> ${userName}</p>
-                    ${bookingDetails.roomName ? `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>` : ""}
+                    ${bedLine}
                     <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
                     <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
@@ -403,6 +409,11 @@ export const sendBookingConfirmationToUser = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const bedLine = bookingDetails.bedsSummary
+      ? `<div class="highlight">🛏️ ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} Beds: ` : "Bed: "}${bookingDetails.bedsSummary}</div>`
+      : bookingDetails.roomName
+      ? `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>`
+      : "";
 
     await resend.emails.send({
       from: FROM_ADDRESS,
@@ -442,7 +453,7 @@ export const sendBookingConfirmationToUser = async (
                 <div class="details">
                     <h3>Booking Summary:</h3>
                     <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
-                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    ${bedLine}
                     <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
                     <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
@@ -547,6 +558,9 @@ export const sendBookingApprovalEmail = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const bedLine = bookingDetails.bedsSummary
+      ? `<div class="highlight">🛏️ ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} Beds: ` : "Bed: "}${bookingDetails.bedsSummary}</div>`
+      : `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>`;
 
     await resend.emails.send({
       from: FROM_ADDRESS,
@@ -581,13 +595,13 @@ export const sendBookingApprovalEmail = async (
                 
                 <div class="success">
                     <strong>Congratulations ${userName}!</strong><br>
-                    Your booking request has been approved by the PG admin. Your room is now reserved!
+                    Your booking request has been approved by the PG admin. Your ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} beds are` : "room is"} now reserved!
                 </div>
                 
                 <div class="details">
                     <h3>Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
-                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    ${bedLine}
                     <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
                     <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
@@ -634,6 +648,9 @@ export const sendBookingRejectionEmail = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const bedLine = bookingDetails.bedsSummary
+      ? `<p><strong>Beds:</strong> ${bookingDetails.bedsSummary}</p>`
+      : `<p><strong>Room:</strong> ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</p>`;
 
     await resend.emails.send({
       from: FROM_ADDRESS,
@@ -673,7 +690,7 @@ export const sendBookingRejectionEmail = async (
                 <div class="details">
                     <h3>Rejected Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
-                    <p><strong>Room:</strong> ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</p>
+                    ${bedLine}
                     <p><strong>Join Date:</strong> ${new Date(bookingDetails.joinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
                     <p><strong>Total Amount:</strong> ₹${bookingDetails.totalPrice.toLocaleString()}</p>
@@ -1105,6 +1122,9 @@ export const sendBookingRescheduledToUser = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const bedLine = bookingDetails.bedsSummary
+      ? `<div class="highlight">🛏️ ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} Beds: ` : "Bed: "}${bookingDetails.bedsSummary}</div>`
+      : `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>`;
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: userEmail,
@@ -1141,7 +1161,7 @@ export const sendBookingRescheduledToUser = async (
                 <div class="details">
                     <h3>Updated Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
-                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    ${bedLine}
                     <p><strong>Previous Join Date:</strong> <span class="old-date">${new Date(bookingDetails.oldJoinDate).toLocaleDateString()}</span></p>
                     <p><strong>New Join Date:</strong> ${new Date(bookingDetails.newJoinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>
@@ -1175,6 +1195,9 @@ export const sendBookingRescheduledToAdmin = async (
 ) => {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
+    const bedLine = bookingDetails.bedsSummary
+      ? `<div class="highlight">🛏️ ${bookingDetails.bedCount > 1 ? `${bookingDetails.bedCount} Beds: ` : "Bed: "}${bookingDetails.bedsSummary}</div>`
+      : `<div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>`;
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: adminEmail,
@@ -1211,7 +1234,7 @@ export const sendBookingRescheduledToAdmin = async (
                     <h3>Updated Booking Details:</h3>
                     <p><strong>PG Name:</strong> ${bookingDetails.pgName}</p>
                     <p><strong>Tenant:</strong> ${userName}</p>
-                    <div class="highlight">🛏️ Room: ${bookingDetails.roomName} | Bed #${bookingDetails.bedNumber}</div>
+                    ${bedLine}
                     <p><strong>Previous Join Date:</strong> <span class="old-date">${new Date(bookingDetails.oldJoinDate).toLocaleDateString()}</span></p>
                     <p><strong>New Join Date:</strong> ${new Date(bookingDetails.newJoinDate).toLocaleDateString()}</p>
                     <p><strong>Stay Duration:</strong> ${bookingDetails.stayDays} days</p>

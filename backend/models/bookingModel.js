@@ -1,5 +1,24 @@
 import mongoose from "mongoose";
 
+const bedItemSchema = new mongoose.Schema(
+  {
+    roomId: {
+      type: String,
+      required: [true, "Room ID is required"],
+    },
+    bedId: {
+      type: String,
+      required: [true, "Bed ID is required"],
+    },
+    roomName: { type: String },
+    bedNumber: { type: Number },
+    bedPrice: { type: Number, default: 0 },
+    pricingPeriod: { type: String, enum: ["day", "month"], default: "month" },
+    totalPrice: { type: Number, default: 0 },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     userId: {
@@ -12,20 +31,25 @@ const bookingSchema = new mongoose.Schema(
       ref: "PG",
       required: [true, "PG ID is required"],
     },
-    roomId: {
-      type: String,
-      required: [true, "Room ID is required"],
+
+    // ── Multi-bed support ──────────────────────────────────────────────────
+    // When booking multiple beds they are stored in the `beds` array.
+    // For backward-compatibility with single-bed bookings the legacy scalar
+    // fields `roomId` / `bedId` are kept but are no longer required at the
+    // schema level (they are set automatically from `beds[0]` during creation).
+    beds: {
+      type: [bedItemSchema],
+      default: undefined, // only present for multi-bed bookings
     },
-    bedId: {
-      type: String,
-      required: [true, "Bed ID is required"],
-    },
+
+    // Legacy single-bed fields (still written for old single-bed records)
+    roomId: { type: String },
+    bedId:  { type: String },
+
     joinDate: {
       type: Date,
       required: [true, "Join date is required"],
       validate: {
-        // Only enforce "not in the past" when first creating the booking,
-        // not on subsequent saves (status updates, cancellations, reschedules).
         validator: function (date) {
           return !this.isNew || date >= new Date();
         },
@@ -58,18 +82,9 @@ const bookingSchema = new mongoose.Schema(
       enum: ["online", "cash"],
       default: "cash",
     },
-    razorpayOrderId: {
-      type: String,
-      default: null,
-    },
-    razorpayPaymentId: {
-      type: String,
-      default: null,
-    },
-    razorpaySignature: {
-      type: String,
-      default: null,
-    },
+    razorpayOrderId: { type: String, default: null },
+    razorpayPaymentId: { type: String, default: null },
+    razorpaySignature: { type: String, default: null },
     notes: {
       type: String,
       maxlength: [500, "Notes cannot exceed 500 characters"],
@@ -79,9 +94,7 @@ const bookingSchema = new mongoose.Schema(
       maxlength: [500, "Admin notes cannot exceed 500 characters"],
     },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 // Virtual for booking end date
@@ -110,12 +123,7 @@ bookingSchema.statics.findActiveBookingsForPG = function (pgId) {
     joinDate: { $lte: new Date() },
     $expr: {
       $gt: [
-        {
-          $add: [
-            "$joinDate",
-            { $multiply: ["$stayDays", 24 * 60 * 60 * 1000] },
-          ],
-        },
+        { $add: ["$joinDate", { $multiply: ["$stayDays", 24 * 60 * 60 * 1000] }] },
         new Date(),
       ],
     },
