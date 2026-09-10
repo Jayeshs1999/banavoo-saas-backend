@@ -53,8 +53,11 @@ app.get("/", (_req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ── Routes ──────────────────────────────────────────────────────────────────
-import authRoutes from "./routes/authRoutes.js";
-app.use("/api/auth", authRoutes);
+import authRoutes  from "./routes/authRoutes.js";
+import storeRoutes from "./routes/store.routes.js";
+
+app.use("/api/auth",   authRoutes);
+app.use("/api/stores", storeRoutes);
 
 // ── Error handling (must be last) ───────────────────────────────────────────
 app.use(notFound);

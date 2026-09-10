@@ -1,5 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import User from "../models/userModel.js";
+import Store from "../models/storeModel.js";
 import EmailVerification from "../models/emailVerificationModel.js";
 import PasswordReset from "../models/passwordResetModel.js";
 import generateToken from "../utils/generateToken.js";
@@ -333,9 +334,21 @@ export const logoutUser = asyncHandler(async (_req, res) => {
  * @access Private
  */
 export const getMe = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const store =
+    user.role === "seller"
+      ? await Store.findOne({ ownerId: user._id }).select("name slug status _id")
+      : null;
+
   return res.json({
     success: true,
-    data: req.user.toSafeObject(),
+    data: {
+      ...user.toSafeObject(),
+      store: store
+        ? { id: store._id, name: store.name, slug: store.slug, status: store.status }
+        : null,
+    },
   });
 });
 
