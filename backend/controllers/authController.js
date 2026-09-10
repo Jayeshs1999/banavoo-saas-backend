@@ -4,7 +4,7 @@ import EmailVerification from "../models/emailVerificationModel.js";
 import PasswordReset from "../models/passwordResetModel.js";
 import generateToken from "../utils/generateToken.js";
 import { generateOTP, verifyOTP } from "../utils/otp.js";
-import { generateResetToken, verifyResetToken } from "../utils/password.js";
+import { generateResetToken, verifyResetToken, getTokenLookup } from "../utils/password.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email/email.service.js";
 import {
   validateRegister,
@@ -368,11 +368,12 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     { $set: { used: true } }
   );
 
-  const { token, tokenHash } = await generateResetToken();
+  const { token, tokenLookup, tokenHash } = await generateResetToken();
   await PasswordReset.create({
-    userId:    user._id,
+    userId:      user._id,
+    tokenLookup,
     tokenHash,
-    expiresAt: new Date(Date.now() + RESET_EXPIRES_HOURS * 60 * 60 * 1000),
+    expiresAt:   new Date(Date.now() + RESET_EXPIRES_HOURS * 60 * 60 * 1000),
   });
 
   const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password?token=${token}`;
@@ -402,22 +403,15 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
   const { token, password } = req.body;
 
-  // Find all valid (unused, non-expired) reset records and test the token
-  const records = await PasswordReset.find({
+  // O(1) lookup via SHA-256 index, then bcrypt verify for security
+  const tokenLookup = getTokenLookup(token);
+  const matchedRecord = await PasswordReset.findOne({
+    tokenLookup,
     used:      false,
     expiresAt: { $gt: new Date() },
   });
 
-  let matchedRecord = null;
-  for (const record of records) {
-    const isMatch = await verifyResetToken(token, record.tokenHash);
-    if (isMatch) {
-      matchedRecord = record;
-      break;
-    }
-  }
-
-  if (!matchedRecord) {
+  if (!matchedRecord || !(await verifyResetToken(token, matchedRecord.tokenHash))) {
     return res.status(400).json({
       success: false,
       code: "INVALID_RESET_TOKEN",
