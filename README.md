@@ -1,209 +1,83 @@
-# Dormitory Management API
+# Backend — Express + MongoDB Template
 
-A comprehensive backend API for managing PG (Paying Guest) accommodations and dormitory management.
+A clean, minimal **Node.js + Express + MongoDB** API starter template.
 
-## Features
+## Stack
 
-- **Admin Management**: Register, authenticate, and manage PG administrators
-- **User Management**: User registration and authentication
-- **PG Management**: Create and manage PG properties with room and bed allocation
-- **Booking System**: Handle booking requests, approvals, and management
-- **OTP Verification**: Mobile and email verification system
-- **Password Reset**: Secure password reset functionality
-- **File Upload**: Support for uploading PG photos
-- **Swagger Documentation**: Complete API documentation
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js (ESM) |
+| Framework | Express 4 |
+| Database | MongoDB + Mongoose |
+| Auth | JWT (cookie + Authorization header) |
+| Password | bcryptjs |
 
-## Tech Stack
+## Project structure
 
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM (Object Document Mapper)
-- **JWT** - Authentication
-- **Bcryptjs** - Password hashing
-- **Multer** - File upload handling
-- **Swagger** - API documentation
+```
+backend/
+  config/
+    db.js                ← MongoDB connection
 
-## Installation
+  middleware/
+    asyncHandler.js      ← Async error wrapper
+    authMiddleware.js    ← JWT protect + requireRole
+    errorMiddleware.js   ← 404 / global error handler
 
-1. Clone the repository
+  models/
+    userModel.js         ← User schema (extend or duplicate)
 
-```bash
-git clone <repository-url>
-cd bookshop
+  controllers/
+    authController.js    ← register / login / logout / getMe
+
+  routes/
+    authRoutes.js        ← /api/auth/*
+
+  utils/
+    generateToken.js     ← Signs JWT + sets cookie
+
+  server.js              ← App entry point
 ```
 
-2. Install dependencies
+## Getting started
 
 ```bash
+# 1. Install dependencies
 npm install
-```
 
-3. Set up environment variables
-
-```bash
+# 2. Configure environment
 cp example.env .env
-# Edit .env file with your configuration
-```
+# → Fill in MONGO_URI and JWT_SECRET at minimum
 
-4. Start the development server
-
-```bash
+# 3. Start dev server
 npm run dev
 ```
 
-## API Endpoints
+## API endpoints (built-in)
 
-### Admin Routes
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | Public | Create account |
+| POST | `/api/auth/login` | Public | Get JWT |
+| POST | `/api/auth/logout` | Private | Clear cookie |
+| GET | `/api/auth/me` | Private | Get current user |
 
-#### Authentication
+## Adding a new resource
 
-- `POST /api/admins/auth` - Admin login
-- `POST /api/admins/register` - Admin registration
-- `POST /api/admins/logout` - Admin logout
+1. Create `models/yourModel.js` — define the Mongoose schema
+2. Create `controllers/yourController.js` — implement handlers using `asyncHandler`
+3. Create `routes/yourRoutes.js` — wire up the router
+4. Mount in `server.js`:
+   ```js
+   import yourRoutes from "./routes/yourRoutes.js";
+   app.use("/api/your-resource", yourRoutes);
+   ```
 
-#### Profile Management
+## Role-based access
 
-- `GET /api/admins/profile` - Get admin profile
-- `PUT /api/admins/profile` - Update admin profile
+```js
+import { protect, requireRole } from "../middleware/authMiddleware.js";
 
-#### OTP & Verification
-
-- `POST /api/admins/send-mobile-otp` - Send mobile OTP
-- `POST /api/admins/verify-mobile-otp` - Verify mobile OTP
-- `POST /api/admins/send-email-otp` - Send email OTP
-- `POST /api/admins/verify-email-otp` - Verify email OTP
-
-#### Password Management
-
-- `POST /api/admins/forgot-password` - Request password reset
-- `POST /api/admins/reset-password` - Reset password
-
-### User Routes
-
-#### Authentication
-
-- `POST /api/users/auth` - User login
-- `POST /api/users/register` - User registration
-- `POST /api/users/logout` - User logout
-
-#### Profile Management
-
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
-
-### PG Routes
-
-#### PG Management
-
-- `GET /api/pgs` - Get all PGs
-- `GET /api/pgs/:id` - Get PG by ID
-- `POST /api/pgs` - Create new PG (Admin only)
-- `PUT /api/pgs/:id` - Update PG (Admin only)
-- `DELETE /api/pgs/:id` - Delete PG (Admin only)
-
-#### PG Search
-
-- `GET /api/pgs/search` - Search PGs by location
-
-### Booking Routes
-
-#### Booking Management
-
-- `GET /api/bookings` - Get all bookings (Admin only)
-- `GET /api/bookings/user` - Get user bookings
-- `GET /api/bookings/pg` - Get PG bookings (Admin only)
-- `POST /api/bookings` - Create new booking
-- `PUT /api/bookings/:id` - Update booking status (Admin only)
-- `DELETE /api/bookings/:id` - Cancel booking
-
-### File Upload
-
-#### Image Upload
-
-- `POST /api/upload` - Upload PG images
-
-## Database Models
-
-### User
-
-- Basic user information (name, email, mobile, address)
-- Password hashing and verification
-- OTP verification system
-
-### Admin
-
-- PG administrator information
-- PG ownership and management
-- Password hashing and verification
-- OTP verification system
-
-### PG
-
-- PG property details (name, location, photos)
-- Room and bed structure
-- Online payment capability
-- Bed allocation status
-
-### Booking
-
-- Booking details (user, PG, room, bed, dates)
-- Booking status and payment information
-- Price calculation and management
-
-## Environment Variables
-
-```env
-PORT=5000
-NODE_ENV=development
-MONGO_URI=mongodb://localhost:27017/dormitory_management
-JWT_SECRET=your_jwt_secret_key_here
+// Admin only
+router.delete("/users/:id", protect, requireRole("admin"), deleteUser);
 ```
-
-## API Documentation
-
-Access the interactive API documentation at:
-
-```
-http://localhost:5000/api-docs
-```
-
-## Development
-
-### Running Tests
-
-```bash
-npm test
-```
-
-### Linting
-
-```bash
-npm run lint
-```
-
-### Building
-
-```bash
-npm run build
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for your changes
-5. Run the test suite
-6. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions, please contact:
-
-- Email: support@example.com
-- GitHub Issues: [Repository Issues](https://github.com/yourusername/dormitory-api/issues)

@@ -1,21 +1,25 @@
 import jwt from "jsonwebtoken";
 
-const generateToken = (res, userId, userType) => {
-  const payload = userType === "admin" ? { adminId: userId } : { userId };
-
-  const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: "30d",
+/**
+ * generateToken — signs a JWT and optionally sets it as an HTTP-only cookie.
+ *
+ * @param {import("express").Response} res  - Express response object
+ * @param {string} userId  - The user's _id from MongoDB
+ * @returns {string} The signed JWT
+ */
+const generateToken = (res, userId) => {
+  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
   });
 
-  // Set JWT as HTTP Only cookie
+  // Set HTTP-only cookie (optional — remove if using Authorization header only)
   res.cookie("jwt", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== "development", // use https in production
-    sameSite: "strict", // prevent CSRF attacks
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in ms
   });
 
-  // Return token for frontend use
   return token;
 };
 

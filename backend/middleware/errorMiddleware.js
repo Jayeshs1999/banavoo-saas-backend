@@ -1,34 +1,21 @@
-import colors from "colors";
+/**
+ * notFound — catches requests to unknown routes (404).
+ * errorHandler — formats all errors as JSON.
+ */
 
 const notFound = (req, res, next) => {
-  const error = new Error(`Not Found - ${req.originalUrl}`);
+  const error = new Error(`Not Found — ${req.originalUrl}`);
   res.status(404);
   next(error);
 };
 
-const errorHandler = (err, req, res, next) => {
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  let message = err.message;
-
-  // Handle specific Mongoose errors
-  if (err.name === "CastError") {
-    const message = "Resource not found";
-    statusCode = 404;
-  }
-
-  if (err.code === 11000) {
-    const message = "Duplicate field value entered";
-    statusCode = 400;
-  }
-
-  if (err.name === "ValidationError") {
-    const message = Object.values(err.errors).map((val) => val.message);
-    statusCode = 400;
-  }
-
+const errorHandler = (err, req, res, _next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
-    message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+    success: false,
+    message: err.message,
+    // Stack trace only in development
+    stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
   });
 };
 

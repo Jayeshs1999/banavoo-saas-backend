@@ -1,7 +1,7 @@
 {
-  "name": "dormitory-api",
+  "name": "my-app-backend",
   "version": "1.0.0",
-  "description": "Backend API for Dormitory/PG Management System",
+  "description": "Express + MongoDB API template",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -12,16 +12,8 @@
     "data:destroy": "node backend/seeder.js -d",
     "build": "npm install"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Jayeshs1999/dormitory-backend.git"
-  },
-  "author": "jayesh sevatkar",
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Jayeshs1999/dormitory-backend/issues"
-  },
-  "homepage": "https://github.com/Jayeshs1999/dormitory-backend#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.3",
